@@ -7,6 +7,10 @@ function actualizarStockProductoActual()
   
     actualizarStockIdProducto($product->id);
 }
+function actualizarStockCron()
+{
+    
+}
 
 function actualizarStockCarrito()
 {
