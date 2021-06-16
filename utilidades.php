@@ -111,5 +111,16 @@ function actualizarStockSku($aProductId_Sku = array()){
   }
 }
 
+function comprobarTodosProductos(){
+  //TODO
+  //Todo: Sincronizar todos los productos: nombre, descripción, imagen, precio y stock
+  //IDEA: Únicamente debería hacerse una vez, después siempre se actualizará en base a la última fecha de actualización (así se reduce la carga de las consultas). Utilizar action de wp al activar el plugin
+}
+
+function notificarVenta($orderId){
+  //TODO
+  //Todo:Notificar la venta a jugatoys
+
+}
 
  ?>
