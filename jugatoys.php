@@ -37,10 +37,10 @@ function configuracionInicial(){
   //Todo: crear cron para consultar si hay nuevos productos a partir de la última fecha de consulta (guardar como opción)
   //IDEA: Cron diario como el anterior, pero esta vez consultando si hay productos nuevos a partir de X fecha. Entiendo que no haría falta recursividad
 
-  function cron_events_actualizar_productos() {
-      comprobarTodosProductos();
-    }
-  add_action( 'actualizar_productos_cron', 'cron_events_actualizar_productos' );
+  //function cron_events_actualizar_productos() {
+      //comprobarTodosProductos();
+    //}
+  //add_action( 'actualizar_productos_cron', 'cron_events_actualizar_productos' );
 
   //Añadimos hoook/acción de consulta de stock de producto individual al entrar a la página individual
   // https://www.businessbloomer.com/woocommerce-visual-hook-guide-single-product-page/
