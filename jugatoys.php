@@ -51,7 +51,7 @@ function configuracionInicial(){
       wp_schedule_single_event(time(), "jugatoys_actualizar_stock_productos");
     }
   }
-  add_action( 'jugatoys_actualizar_stock_productos', 'cron_events_actualizar_stock_productos' );
+  add_action( 'jugatoys_actualizar_stock_productos', 'actualizarStockProductos' );
   add_action( 'jugatoys_actualizar_stock_productos_cron', 'cron_events_actualizar_stock_productos' );
 
 
@@ -109,7 +109,7 @@ function configuracionInicial(){
   // Ajax de prueba
   // https://jugueteriamets.serinforhosting.com/wp-admin/admin-ajax.php?action=pruebaAPI
   add_action( 'wp_ajax_pruebaAPI', 'pruebaAPI' );
-  add_action( 'wp_ajax_nopriv_pruebaAPI', 'pruebaAPI' );
+  // add_action( 'wp_ajax_nopriv_pruebaAPI', 'pruebaAPI' );
 
 
 }

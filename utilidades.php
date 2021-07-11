@@ -339,6 +339,10 @@ function jugatoys_configuracion_default(){
   }
 }
 
+function desactivar_cron($cron_name){
+  $timestamp = wp_next_scheduled( $cron_name );
+  wp_unschedule_event( $timestamp, $cron_name );
+}
 
 
 //función de pruebas que se llama desde HOST/wp-admin/admin-ajax.php?action=pruebaAPI
@@ -402,12 +406,4 @@ function pruebaAPI(){
 
   wp_die();
 }
-
-
-
-function desactivar_cron($cron_name){
-  $timestamp = wp_next_scheduled( $cron_name );
-  wp_unschedule_event( $timestamp, $cron_name );
-}
-
  ?>
