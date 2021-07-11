@@ -126,7 +126,6 @@ function jugatoys_activate(){
 
 register_activation_hook( __FILE__, 'jugatoys_activate' );
 
-
 // Función que se correrá únicamente una vez al desactivar el plugin
 function jugatoys_deactivate(){
   desactivar_cron("jugatoys_nuevos_productos_cron");
