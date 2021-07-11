@@ -127,11 +127,30 @@ class JugaToysSettingsPage
 
         add_settings_field(
             'sincronizaciones_diarias', 
-            __('Número de sincronizaciones globales diarias','jugatoys'), 
+            __('Número de sincronizaciones globales diarias para actualizar stock','jugatoys'), 
             array( $this, 'sincronizaciones_diarias_callback' ), 
             'jugatoys-ajustes', 
             'ajuste_sincronizacion_jugatoys'
         );
+
+        add_settings_field(
+            'sincronizaciones_diarias_numero_productos', 
+            __('Número de productos a actualizar recursivamente','jugatoys'), 
+            array( $this, 'sincronizaciones_diarias_numero_productos_callback' ), 
+            'jugatoys-ajustes', 
+            'ajuste_sincronizacion_jugatoys'
+        );
+
+        add_settings_field(
+            'sincronizaciones_diarias_minutos_consulta', 
+            __('Número de minutos de antigüedad de actualización para consulta de productos','jugatoys'), 
+            array( $this, 'sincronizaciones_diarias_minutos_consulta_callback' ), 
+            'jugatoys-ajustes', 
+            'ajuste_sincronizacion_jugatoys'
+        );
+
+
+
 
       
     }
@@ -160,7 +179,13 @@ class JugaToysSettingsPage
             $new_input['timeout'] = absint( $input['timeout'] );
 
         if( isset( $input['sincronizaciones_diarias'] ) )
-            $new_input['sincronizaciones_diarias'] = sanitize_text_field( $input['sincronizaciones_diarias'] );
+            $new_input['sincronizaciones_diarias'] = absint( $input['sincronizaciones_diarias'] );
+
+        if( isset( $input['sincronizaciones_diarias_numero_productos'] ) )
+            $new_input['sincronizaciones_diarias_numero_productos'] = absint( $input['sincronizaciones_diarias_numero_productos'] );
+
+        if( isset( $input['sincronizaciones_diarias_minutos_consulta'] ) )
+            $new_input['sincronizaciones_diarias_minutos_consulta'] = absint( $input['sincronizaciones_diarias_minutos_consulta'] );
 
         return $new_input;
     }
@@ -226,10 +251,34 @@ class JugaToysSettingsPage
     public function sincronizaciones_diarias_callback()
     {
         printf(
-            '<input type="text" id="sincronizaciones_diarias" name="jugatoys_settings[sincronizaciones_diarias]" value="%s" />',
+            '<input type="text" id="sincronizaciones_diarias" name="jugatoys_settings[sincronizaciones_diarias]" value="%d" />',
             isset( $this->options['sincronizaciones_diarias'] ) ? esc_attr( $this->options['sincronizaciones_diarias']) : ''
         );
     }
+
+    /** 
+     * Get the settings option array and print one of its values
+     */
+    public function sincronizaciones_diarias_numero_productos_callback()
+    {
+        printf(
+            '<input type="text" id="sincronizaciones_diarias_numero_productos" name="jugatoys_settings[sincronizaciones_diarias_numero_productos]" value="%d" />',
+            isset( $this->options['sincronizaciones_diarias_numero_productos'] ) ? esc_attr( $this->options['sincronizaciones_diarias_numero_productos']) : ''
+        );
+    }
+
+
+    /** 
+     * Get the settings option array and print one of its values
+     */
+    public function sincronizaciones_diarias_minutos_consulta_callback()
+    {
+        printf(
+            '<input type="text" id="sincronizaciones_diarias_minutos_consulta" name="jugatoys_settings[sincronizaciones_diarias_minutos_consulta]" value="%d" />',
+            isset( $this->options['sincronizaciones_diarias_minutos_consulta'] ) ? esc_attr( $this->options['sincronizaciones_diarias_minutos_consulta']) : ''
+        );
+    }
+
 
 }
 

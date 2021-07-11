@@ -21,7 +21,9 @@ class JugaToysAPI{
     curl_setopt($this->ch, CURLOPT_PORT , $this->options['puerto']);
     curl_setopt($this->ch, CURLOPT_RETURNTRANSFER, TRUE);
     curl_setopt($this->ch, CURLOPT_TIMEOUT, $this->options['timeout']);
-    // curl_setopt($tuCurl, CURLOPT_SSL_VERIFYPEER, 0);
+    curl_setopt($this->ch, CURLOPT_FOLLOWLOCATION, 1);
+    curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, 0);
+
 
     // curl_setopt($this->ch, CURLOPT_NOBODY, TRUE); // remove body
   }
@@ -91,15 +93,34 @@ class JugaToysAPI{
       'password' => $this->options['pw']
     );
 
+    
     $data = array_merge($credenciales, $params);
     $jsonData = json_encode($data);
 
     curl_setopt($this->ch, CURLOPT_POST, true);
     curl_setopt($this->ch, CURLOPT_POSTFIELDS, $jsonData);
+    curl_setopt($this->ch, CURLOPT_HTTPHEADER,
+    array(
+        'Content-Type:application/json',
+        'Content-Length: ' . strlen($jsonData)
+    ));
+
+    jugatoys_log("-------------------------------");
+    jugatoys_log(["url", $url]);
+    jugatoys_log(["jsonData", $jsonData]);
 
     $respuesta = curl_exec($this->ch);
+    if ($respuesta === false) {
+      jugatoys_log(["curl_error", curl_error($this->ch)]);
+    }else{
+      jugatoys_log(["respuesta", $respuesta]);
+    }
+    
     $httpCode = curl_getinfo($this->ch, CURLINFO_HTTP_CODE);
     curl_close($this->ch);
+
+    jugatoys_log(["httpCode", $httpCode]);
+    jugatoys_log("-------------------------------");
 
     if($httpCode < 400)
     {
