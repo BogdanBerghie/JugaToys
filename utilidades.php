@@ -115,19 +115,36 @@ function actualizarStockSku($aProductId_Sku = array()){
 //Función que se llama dos veces al día para comprobar nuevos productos
 function comprobarTodosProductos(){
 
+  jugatoys_log("Corriendo comprobarTodosProductos");
+
   //Checkeamos si se ha lanzado alguna vez o es la primera. 
   $fechaUltimaComprobacionProductos = get_option("jugatoys_fechaUltimaComprobacionProductos");
-  
+  if ($fechaUltimaComprobacionProductos == false) $fechaUltimaComprobacionProductos = "2000-07-01";
+
   $api = new JugaToysAPI();
   $productInfo = $api->productInfo(array(), $fechaUltimaComprobacionProductos);
 
-  if ($productInfo->result == "OK") {
+  $productosInsertados = 0;
 
+  if ($productInfo->Result == "OK") {
     $productos = $productInfo->Data;
     foreach ($productos as $key => $producto) {
+
+      // TODO: Test, quitar despues
+      if (empty($producto->UrlImage)) {
+        continue;
+      }
+      if ($productosInsertados > 0) {
+        wp_die();
+      }
+      // /TODO      
+
       $sku = $producto->Sku_Provider;
       if (!existeSKU($sku)) {
-        altaProducto($producto);
+        if (altaProducto((array)$producto)) {
+          $productosInsertados++;
+          jugatoys_log($producto);
+        }
       }
     }
     
@@ -135,10 +152,14 @@ function comprobarTodosProductos(){
   
   }
 
+  return $productosInsertados;
+
 }
 
 //Función que se llama desde cron recursivamente
 function actualizarStockProductos(){
+
+  jugatoys_log("Corriendo actualizarStockProductos");
 
   //Activamos flag indicando que se están actualizando productos
   update_option("jugatoys_actualizandoStockProductos", true);
@@ -204,6 +225,8 @@ function altaProducto($producto){
     return false;
   }
 
+  jugatoys_log("Corriendo altaProducto: ". $producto['Product_Name']);
+  
   try {
 
     $new_simple_product = new WC_Product_Simple();
@@ -220,21 +243,25 @@ function altaProducto($producto){
     $new_simple_product->set_downloadable( 'no' );
     $new_simple_product->set_virtual( 'no' );
 
-    $options = get_option( 'jugatoys_settings' );
-    $url = parse_url($options['url']);
+    if (!empty($producto['UrlImage'])) {
 
-    $urlImagen = $url['host'].str_replace($url['path'], "/TPV", ""). $producto['UrlImage'];
-    $nombreImagen = basename($producto['UrlImage']);
+      $options = get_option( 'jugatoys_settings' );
+      $url = parse_url($options['url']);
+      $urlImagen = $url['scheme'] . "://". $url['host'].str_replace("/TPV", "", $url['path']). $producto['UrlImage'];
+      $nombreImagen = basename($producto['UrlImage']);
 
-    jugatoys_log($urlImagen);
-
-    $attach_id = descargarImagen($new_simple_product->get_id(), $urlImagen, $nombreImagen);
-    $new_simple_product->set_image_id($attach_id);
+      $attach_id = descargarImagen($new_simple_product->get_id(), $urlImagen, $nombreImagen);
+      $new_simple_product->set_image_id($attach_id);
+      
+    }
 
     $new_simple_product->save();
 
+    if (!empty($producto['EAN'])) {
+      update_post_meta( $new_simple_product->get_id(), '_ean', $producto['EAN'] );
+    }
+
     update_post_meta( $new_simple_product->get_id(), '_jugatoys_ultima_actualizacion', time() );
-    update_post_meta( $new_simple_product->get_id(), '_ean', $producto['EAN'] );
 
     return $new_simple_product->get_id();
 
@@ -375,7 +402,15 @@ function pruebaAPI(){
   error_reporting(E_ALL);
 
 
+  var_dump(["jugatoys_fechaUltimaComprobacionProductos", get_option("jugatoys_fechaUltimaComprobacionProductos")]);
 
+  var_dump(comprobarTodosProductos());
+
+  // echo time();
+  // echo '<pre>'; print_r( _get_cron_array() ); echo '</pre>';
+
+
+  wp_die();
 
 
   $producto = array(

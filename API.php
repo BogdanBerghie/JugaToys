@@ -93,8 +93,9 @@ class JugaToysAPI{
       'password' => $this->options['pw']
     );
 
-    
-    $data = array_merge($credenciales, $params);
+    if (!empty($params)) {
+      $data = array_merge($credenciales, $params);
+    }
     $jsonData = json_encode($data, JSON_UNESCAPED_SLASHES );
 
     curl_setopt($this->ch, CURLOPT_POST, true);
@@ -116,7 +117,6 @@ class JugaToysAPI{
       $header_size = curl_getinfo($this->ch, CURLINFO_HEADER_SIZE);
       $header = substr($respuesta, 0, $header_size);
       $respuesta = substr($respuesta, $header_size);
-      jugatoys_log(["respuesta", $respuesta]);
     }
     
     $httpCode = curl_getinfo($this->ch, CURLINFO_HTTP_CODE);
