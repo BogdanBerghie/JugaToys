@@ -200,11 +200,15 @@ function existeSKU($sku){
 
 function altaProducto($producto){
 
+  if (empty($producto['Product_Name']) || empty($producto['Sku_Provider'])) {
+    return false;
+  }
+
   try {
 
     $new_simple_product = new WC_Product_Simple();
 
-    $new_simple_product->set_name($producto['Provider_Name']);
+    $new_simple_product->set_name($producto['Product_Name']);
     $new_simple_product->set_sku($producto['Sku_Provider']);
     $new_simple_product->set_stock($producto['Stock']);
     $new_simple_product->set_stock_quantity($producto['Stock']);
@@ -216,12 +220,21 @@ function altaProducto($producto){
     $new_simple_product->set_downloadable( 'no' );
     $new_simple_product->set_virtual( 'no' );
 
-    $attach_id = descargarImagen($new_simple_product->get_id(), $producto['Image'], $producto['Provider_Name']);
+    $options = get_option( 'jugatoys_settings' );
+    $url = parse_url($options['url']);
+
+    $urlImagen = $url['host'].str_replace($url['path'], "/TPV", ""). $producto['UrlImage'];
+    $nombreImagen = basename($producto['UrlImage']);
+
+    jugatoys_log($urlImagen);
+
+    $attach_id = descargarImagen($new_simple_product->get_id(), $urlImagen, $nombreImagen);
     $new_simple_product->set_image_id($attach_id);
 
     $new_simple_product->save();
 
     update_post_meta( $new_simple_product->get_id(), '_jugatoys_ultima_actualizacion', time() );
+    update_post_meta( $new_simple_product->get_id(), '_ean', $producto['EAN'] );
 
     return $new_simple_product->get_id();
 
@@ -244,7 +257,7 @@ function altaProducto($producto){
 // function altaProducto($producto){
 
 //   $post_id = wp_insert_post( array(
-//     'post_title' => $producto['Provider_Name'],
+//     'post_title' => $producto['Product_Name'],
 //     'post_content' => '',
 //     'post_status' => 'publish',
 //     'post_type' => "product",
@@ -258,7 +271,7 @@ function altaProducto($producto){
 //     update_post_meta( $post_id, '_stock_status', 'instock');
 //     update_post_meta( $post_id, '_sku', $producto['Sku_Provider'] );
 
-//     $attach_id = descargarImagen($post_id, $producto['Image'], $producto['Provider_Name']);
+//     $attach_id = descargarImagen($post_id, $producto['Image'], $producto['Product_Name']);
 //     update_post_meta( $post_id, '_thumbnail_id', $attach_id );  
 
 //     update_post_meta( $post_id, "_manage_stock", "yes");
@@ -345,6 +358,15 @@ function desactivar_cron($cron_name){
 }
 
 
+
+
+
+
+// Ajax de prueba
+// https://jugueteriamets.serinforhosting.com/wp-admin/admin-ajax.php?action=pruebaAPI
+add_action( 'wp_ajax_pruebaAPI', 'pruebaAPI' );
+// add_action( 'wp_ajax_nopriv_pruebaAPI', 'pruebaAPI' );
+
 //función de pruebas que se llama desde HOST/wp-admin/admin-ajax.php?action=pruebaAPI
 function pruebaAPI(){
 
@@ -352,16 +374,48 @@ function pruebaAPI(){
   ini_set('display_startup_errors', '1');
   error_reporting(E_ALL);
 
+
+
+
+
+  $producto = array(
+    "Product_Name" => "test desde funcion altaProducto",
+    "PVP" => 288,
+    "Stock" => 10,
+    "UrlImage" => "https://destinonegocio.com/wp-content/uploads/2018/09/ciclo-de-vida-de-un-producto-1030x687.jpg",
+    "Sku_Provider" => "288-288-7"
+
+  );
+  var_dump(altaProducto($producto));
+
+  wp_die();
+
+
+  $api = new JugaToysAPI();
+
+  //Consultamos contra la API
+  $productInfo = $api->productInfo(array(), "14/06/2021 10:00");
+
+  var_dump($productInfo);
+  
+
+  // echo time();
+  // echo '<pre>'; print_r( _get_cron_array() ); echo '</pre>';
+
+  wp_die();
+
+
+
   var_dump(existeSKU("288-288-2"));
 
   wp_die();
 
 
   $producto = array(
-    "Provider_Name" => "test desde funcion altaProducto",
+    "Product_Name" => "test desde funcion altaProducto",
     "PVP" => 288,
     "Stock" => 10,
-    "Image" => "https://destinonegocio.com/wp-content/uploads/2018/09/ciclo-de-vida-de-un-producto-1030x687.jpg",
+    "UrlImage" => "https://destinonegocio.com/wp-content/uploads/2018/09/ciclo-de-vida-de-un-producto-1030x687.jpg",
     "Sku_Provider" => "288-288-4"
 
   );
@@ -377,10 +431,10 @@ function pruebaAPI(){
 
 
   $producto = array(
-    "Provider_Name" => "test desde funcion altaProducto",
+    "Product_Name" => "test desde funcion altaProducto",
     "PVP" => 288,
     "Stock" => 10,
-    "Image" => "https://destinonegocio.com/wp-content/uploads/2018/09/ciclo-de-vida-de-un-producto-1030x687.jpg",
+    "UrlImage" => "https://destinonegocio.com/wp-content/uploads/2018/09/ciclo-de-vida-de-un-producto-1030x687.jpg",
     "Sku_Provider" => "288-288-2"
 
   );

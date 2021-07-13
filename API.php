@@ -95,7 +95,7 @@ class JugaToysAPI{
 
     
     $data = array_merge($credenciales, $params);
-    $jsonData = json_encode($data);
+    $jsonData = json_encode($data, JSON_UNESCAPED_SLASHES );
 
     curl_setopt($this->ch, CURLOPT_POST, true);
     curl_setopt($this->ch, CURLOPT_POSTFIELDS, $jsonData);
@@ -113,6 +113,9 @@ class JugaToysAPI{
     if ($respuesta === false) {
       jugatoys_log(["curl_error", curl_error($this->ch)]);
     }else{
+      $header_size = curl_getinfo($this->ch, CURLINFO_HEADER_SIZE);
+      $header = substr($respuesta, 0, $header_size);
+      $respuesta = substr($respuesta, $header_size);
       jugatoys_log(["respuesta", $respuesta]);
     }
     

@@ -106,11 +106,6 @@ function configuracionInicial(){
 
 
 
-  // Ajax de prueba
-  // https://jugueteriamets.serinforhosting.com/wp-admin/admin-ajax.php?action=pruebaAPI
-  add_action( 'wp_ajax_pruebaAPI', 'pruebaAPI' );
-  // add_action( 'wp_ajax_nopriv_pruebaAPI', 'pruebaAPI' );
-
 
 }
 
