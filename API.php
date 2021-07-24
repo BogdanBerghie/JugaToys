@@ -24,8 +24,6 @@ class JugaToysAPI{
     curl_setopt($this->ch, CURLOPT_FOLLOWLOCATION, 1);
     curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, 0);
 
-
-    // curl_setopt($this->ch, CURLOPT_NOBODY, TRUE); // remove body
   }
 
   public function productInfo($arrayIds = array(), $updated_from = false){

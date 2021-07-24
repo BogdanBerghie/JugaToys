@@ -16,7 +16,6 @@ include_once("opciones.php");
 
 include_once("utilidades.php");
 
-
 defined('ABSPATH') or die("Error de ruta.");
 
 add_action( 'init', 'configuracionInicial', 0 );
