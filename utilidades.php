@@ -100,8 +100,10 @@ function actualizarStockSku($aProductId_Sku = array()){
             //Si coincide el SKU, actualizamos stock
             $stock = absint($pData->Stock);
             wc_update_product_stock( $idProducto,  $stock , 'set' );
-            update_post_meta( $idProducto, '_jugatoys_ultima_actualizacion', time() );
             jugatoys_log(["Stock actualizado: ", $stock]);
+            
+            $numeroActualizacion = get_option( 'jugatoys_numero_actualizacion');
+            update_post_meta( $idProducto, '_jugatoys_numero_actualizacion', $numeroActualizacion );
           }
 
         }
@@ -127,32 +129,34 @@ function comprobarTodosProductos(){
   $productosInsertados = 0;
   $productosPasados = 0;
 
-  if ($productInfo->Result == "OK") {
-    $productos = $productInfo->Data;
-    foreach ($productos as $key => $producto) {
+  if ($productInfo) {
+    if ($productInfo->Result == "OK") {
+      $productos = $productInfo->Data;
+      foreach ($productos as $key => $producto) {
 
-      // TODO: Test, quitar despues
-      //if (empty($producto->UrlImage)) {
-      if ($producto->Stock == 0 || $producto->PVP == 0) {
-        $productosPasados++;
-        continue;
-      }
-      if ($productosInsertados > 0) {
-        wp_die();
-      }
-      // /TODO      
+        // TODO: Test, quitar despues
+        //if (empty($producto->UrlImage)) {
+        if ($producto->Stock == 0 || $producto->PVP == 0) {
+          $productosPasados++;
+          continue;
+        }
+        if ($productosInsertados > 0) {
+          wp_die();
+        }
+        // /TODO      
 
-      $sku = $producto->Sku_Provider;
-      if (!existeSKU($sku)) {
-        if (altaProducto((array)$producto)) {
-          $productosInsertados++;
-          jugatoys_log($producto);          
+        $sku = $producto->Sku_Provider;
+        if (!existeSKU($sku)) {
+          if (altaProducto((array)$producto)) {
+            $productosInsertados++;
+            jugatoys_log($producto);          
+          }
         }
       }
+      
+      update_option("jugatoys_fechaUltimaComprobacionProductos", Date( "Y-m-d H:i", time() ));
+
     }
-    
-    update_option("jugatoys_fechaUltimaComprobacionProductos", Date( "Y-m-d H:i", time() ));
-  
   }
 
   return $productosInsertados;
@@ -162,7 +166,14 @@ function comprobarTodosProductos(){
 //Función que se llama desde cron recursivamente
 function actualizarStockProductos(){
 
-  jugatoys_log("Corriendo actualizarStockProductos");
+  //Obtenemos número de actualización actual
+  $numeroActualizacion = get_option( 'jugatoys_numero_actualizacion');
+  if (!$numeroActualizacion) {
+    $numeroActualizacion = 1;
+    update_option( 'jugatoys_numero_actualizacion', $numeroActualizacion);
+  }
+
+  jugatoys_log("Nº ". $numeroActualizacion . " - Corriendo actualizarStockProductos");
 
   //Activamos flag indicando que se están actualizando productos
   update_option("jugatoys_actualizandoStockProductos", true);
@@ -174,12 +185,17 @@ function actualizarStockProductos(){
     "numberposts" => $opciones['sincronizaciones_diarias_numero_productos'],
     "post_type" =>  "product",
     'meta_query' => array(
+        'relation' => 'OR',
         array(
-          'key'     => '_jugatoys_ultima_actualizacion',
-          'value'   => time() - (intval($opciones['sincronizaciones_diarias_minutos_consulta']) * 60),
+          'key'     => '_jugatoys_numero_actualizacion',
+          'value'   => $numeroActualizacion,
           'type'    => 'numeric',
-          'compare' => '<=',
+          'compare' => '<',
         ),
+        array(
+           'key' => '_jugatoys_numero_actualizacion',
+           'compare' => 'NOT EXISTS'
+        )
       ),
   );
 
@@ -194,15 +210,25 @@ function actualizarStockProductos(){
       $aIdProdcutos[] = $producto->ID;
     }
 
+    jugatoys_log("Nº ". $numeroActualizacion . " - Obtenidos: ");
+    jugatoys_log($productos);
+
     //Actualizamos productos
     actualizarStockIdProducto($aIdProdcutos);
 
     //Hacemos que función sea recursiva
     wp_schedule_single_event(time(), "jugatoys_actualizar_stock_productos");  
+
   }else{
+
+    jugatoys_log("Nº ". $numeroActualizacion . " - Finalizando actualizarStockProductos");
 
     //Quitamos flag de actualización
     update_option("jugatoys_actualizandoStockProductos", false);
+
+    //Actualizamos numero de actualizacion
+    $numeroActualizacion++;
+    update_option( 'jugatoys_numero_actualizacion', $numeroActualizacion);
 
   }
   
@@ -270,7 +296,8 @@ function altaProducto($producto){
       wp_set_object_terms($new_simple_product->get_id(), $producto["Brand_Supplier_Name"], "pwb-brand");
     }
 
-    update_post_meta( $new_simple_product->get_id(), '_jugatoys_ultima_actualizacion', time() );
+    $numeroActualizacion = get_option( 'jugatoys_numero_actualizacion');
+    update_post_meta( $new_simple_product->get_id(), '_jugatoys_numero_actualizacion', $numeroActualizacion );
 
     return $new_simple_product->get_id();
 
@@ -376,15 +403,22 @@ function jugatoys_log( $msg ){
 
 
 function jugatoys_configuracion_default(){
+  $bGuardar = false;
   $opciones = get_option( 'jugatoys_settings' );
   if (empty($opciones['sincronizaciones_diarias'])) {
     $opciones['sincronizaciones_diarias'] = 24; 
+    $bGuardar = true;
   }
   if (empty($opciones['sincronizaciones_diarias_numero_productos'])) {
     $opciones['sincronizaciones_diarias_numero_productos'] = 20;
+    $bGuardar = true;
   }
   if (empty($opciones['sincronizaciones_diarias_minutos_consulta'])) {
     $opciones['sincronizaciones_diarias_minutos_consulta'] = 60;
+    $bGuardar = true;
+  }
+  if ($bGuardar) {
+    update_option( "jugatoys_settings", $opciones);
   }
 }
 
@@ -409,15 +443,24 @@ function pruebaAPI(){
   ini_set('display_errors', '1');
   ini_set('display_startup_errors', '1');
   error_reporting(E_ALL);
+  echo "<pre>";
+
+
+  // comprobarTodosProductos();
+  // wp_die();
 
   // var_dump(wp_set_object_terms(2920, "Fabricante prueba", "pwb-brand"));
 
   // wp_die();
+  //actualizarStockProductos();
+  // var_dump(["jugatoys_actualizandoStockProductos", get_option("jugatoys_actualizandoStockProductos")]);
+  // var_dump(update_option("jugatoys_actualizandoStockProductos",false));
 
-  // echo time();
-  // echo '<pre>'; print_r( _get_cron_array() ); echo '</pre>';
+  // var_dump(wp_schedule_single_event(time(), "jugatoys_actualizar_stock_productos")); //actualizarStockProductos
+  echo time();
+  echo '<pre>'; print_r( _get_cron_array() ); echo '</pre>';
 
-  // wp_die();
+  wp_die();
 
   var_dump(["jugatoys_fechaUltimaComprobacionProductos", get_option("jugatoys_fechaUltimaComprobacionProductos")]);
   var_dump(comprobarTodosProductos());
