@@ -79,6 +79,9 @@ function actualizarStockSku($aProductId_Sku = array()){
   if (empty($productInfo)) {
     return false;
   }  
+
+  $numeroActualizacion = get_option( 'jugatoys_numero_actualizacion');
+
   //Verificamos si la respuesta es correcta
   if ($productInfo->Result == "OK") {
 
@@ -101,8 +104,7 @@ function actualizarStockSku($aProductId_Sku = array()){
             $stock = absint($pData->Stock);
             wc_update_product_stock( $idProducto,  $stock , 'set' );
             jugatoys_log(["Stock actualizado: ", $stock]);
-            
-            $numeroActualizacion = get_option( 'jugatoys_numero_actualizacion');
+                        
             update_post_meta( $idProducto, '_jugatoys_numero_actualizacion', $numeroActualizacion );
           }
 
@@ -110,7 +112,33 @@ function actualizarStockSku($aProductId_Sku = array()){
 
       }
 
+    }else{
+      //Si llega data pero llega vacío, establecemos los productos como actualizados
+      foreach ($aProductId_Sku as $postId => $sku) {
+        update_post_meta($postId, '_jugatoys_numero_actualizacion', $numeroActualizacion );
+      }
     }
+  }else{
+
+    // foreach ($aProductId_Sku as $postId => $sku) {
+    //   update_post_meta($postId, '_jugatoys_numero_actualizacion', $numeroActualizacion );
+    // }
+
+    //En caso de respuesta incorrecta, marcamos consultamos indifivucalmente producto
+    //SI tiene más de un elemento, puede que solo esté fallando uno de los elementos, por tanto consultamos todos.
+    if(count($aProductId_Sku) > 1){
+      foreach ($aProductId_Sku as $key => $value) {
+        $aNuevoProductId_Sku = array($key=>$value);
+        actualizarStockSku($aNuevoProductId_Sku);
+      }
+    }else{
+      //Si tiene un elemento, asumimos que está incorrecto y actualiamos la opción numero actualización
+      foreach ($aProductId_Sku as $postId => $sku) {
+        update_post_meta($postId, '_jugatoys_numero_actualizacion', $numeroActualizacion );
+      }
+    }
+
+
   }
 }
 
@@ -413,10 +441,6 @@ function jugatoys_configuracion_default(){
     $opciones['sincronizaciones_diarias_numero_productos'] = 20;
     $bGuardar = true;
   }
-  if (empty($opciones['sincronizaciones_diarias_minutos_consulta'])) {
-    $opciones['sincronizaciones_diarias_minutos_consulta'] = 60;
-    $bGuardar = true;
-  }
   if ($bGuardar) {
     update_option( "jugatoys_settings", $opciones);
   }
@@ -444,7 +468,6 @@ function pruebaAPI(){
   ini_set('display_startup_errors', '1');
   error_reporting(E_ALL);
   echo "<pre>";
-
 
   // comprobarTodosProductos();
   // wp_die();

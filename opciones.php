@@ -140,18 +140,6 @@ class JugaToysSettingsPage
             'jugatoys-ajustes', 
             'ajuste_sincronizacion_jugatoys'
         );
-
-        add_settings_field(
-            'sincronizaciones_diarias_minutos_consulta', 
-            __('Número de minutos de antigüedad de actualización para consulta de productos','jugatoys'), 
-            array( $this, 'sincronizaciones_diarias_minutos_consulta_callback' ), 
-            'jugatoys-ajustes', 
-            'ajuste_sincronizacion_jugatoys'
-        );
-
-
-
-
       
     }
 
@@ -183,9 +171,6 @@ class JugaToysSettingsPage
 
         if( isset( $input['sincronizaciones_diarias_numero_productos'] ) )
             $new_input['sincronizaciones_diarias_numero_productos'] = absint( $input['sincronizaciones_diarias_numero_productos'] );
-
-        if( isset( $input['sincronizaciones_diarias_minutos_consulta'] ) )
-            $new_input['sincronizaciones_diarias_minutos_consulta'] = absint( $input['sincronizaciones_diarias_minutos_consulta'] );
 
         return $new_input;
     }
@@ -266,19 +251,6 @@ class JugaToysSettingsPage
             isset( $this->options['sincronizaciones_diarias_numero_productos'] ) ? esc_attr( $this->options['sincronizaciones_diarias_numero_productos']) : ''
         );
     }
-
-
-    /** 
-     * Get the settings option array and print one of its values
-     */
-    public function sincronizaciones_diarias_minutos_consulta_callback()
-    {
-        printf(
-            '<input type="text" id="sincronizaciones_diarias_minutos_consulta" name="jugatoys_settings[sincronizaciones_diarias_minutos_consulta]" value="%d" />',
-            isset( $this->options['sincronizaciones_diarias_minutos_consulta'] ) ? esc_attr( $this->options['sincronizaciones_diarias_minutos_consulta']) : ''
-        );
-    }
-
 
 }
 
