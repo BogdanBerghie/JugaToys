@@ -43,7 +43,8 @@ function actualizarStockIdProducto($aIdProducto = array()){
 
   foreach ($aIdProducto as $key => $idProducto) {
     //Obtenemos SKU del producto, para consultar contra la API
-    $sku = get_post_meta($idProducto, '_sku', true);
+    // $sku = get_post_meta($idProducto, '_sku', true);
+    $sku = get_post_meta($idProducto, '_sku_jugatoys', true);
     if (!empty($sku)) {
       $aProductId_Sku[$idProducto] = $sku;
     }
@@ -164,21 +165,31 @@ function comprobarTodosProductos(){
 
         // TODO: Test, quitar despues
         //if (empty($producto->UrlImage)) {
-        if ($producto->Stock == 0 || $producto->PVP == 0) {
-          $productosPasados++;
-          continue;
-        }
-        if ($productosInsertados > 0) {
-          wp_die();
-        }
+        // if ($producto->Stock == 0 || $producto->PVP == 0) {
+        //   $productosPasados++;
+        //   continue;
+        // }
+        // if ($productosInsertados > 0) {
+        //   wp_die();
+        // }
         // /TODO      
 
-        $sku = $producto->Sku_Provider;
-        if (!existeSKU($sku)) {
+        
+        $producto->Sku = $sku; = $producto->Sku_Provider;
+        // Sku nos llega con 10000-SKU
+        $pos = strpos($producto->Sku, '-');
+        if ($pos !== false) {
+          $producto->Sku = substr($producto->Sku, $pos+1);
+        }
+
+        $idProducto = existeSKU($producto->Sku);
+        if (!$idProducto) {
           if (altaProducto((array)$producto)) {
             $productosInsertados++;
             jugatoys_log($producto);          
           }
+        }else{
+          update_post_meta($idProducto, '_sku_jugatoys', $producto->Sku_Provider );
         }
       }
       
@@ -289,7 +300,7 @@ function altaProducto($producto){
     $new_simple_product = new WC_Product_Simple();
 
     $new_simple_product->set_name($producto['Product_Name']);
-    $new_simple_product->set_sku($producto['Sku_Provider']);
+    $new_simple_product->set_sku($producto['Sku']);
     $new_simple_product->set_stock($producto['Stock']);
     $new_simple_product->set_stock_quantity($producto['Stock']);
     $new_simple_product->set_stock_status("instock");
@@ -322,6 +333,11 @@ function altaProducto($producto){
     //Guardamos marca
     if (!empty($producto["Brand_Supplier_Name"])) {
       wp_set_object_terms($new_simple_product->get_id(), $producto["Brand_Supplier_Name"], "pwb-brand");
+    }
+
+    //Guardamos sku de jugatoys
+    if (!empty($producto['Sku_Provider'])) {
+      update_post_meta( $new_simple_product->get_id(), '_sku_jugatoys', $producto['Sku_Provider'] );
     }
 
     $numeroActualizacion = get_option( 'jugatoys_numero_actualizacion');
@@ -411,8 +427,10 @@ function notificarVenta($orderId){
   $order = wc_get_order( $orderId );
   foreach ($order->get_items() as $item_key => $item ){
     $producto = $item->get_product();
+    $idProducto = $item->get_id();
+    $sku = get_post_meta($idProducto, '_sku_jugatoys', true);
     $lineas[] = (object) array(
-      "Sku_Provider" => $producto->get_sku(),
+      "Sku_Provider" => $sku,
       "Quantity" => $item->get_quantity(),
       "PVP" => $producto->get_price(),
       "IVA" => ($item_data['tax_class']) ? $item_data['tax_class'] : 21

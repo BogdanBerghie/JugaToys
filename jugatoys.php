@@ -100,7 +100,7 @@ function configuracionInicial(){
 
 
   //TODO: Test, quitar despues
-  add_action( 'woocommerce_checkout_order_processed', 'jugatoys_action_pago_realizado', 10, 1 ); 
+  // add_action( 'woocommerce_checkout_order_processed', 'jugatoys_action_pago_realizado', 10, 1 ); 
   
 
 
