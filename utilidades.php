@@ -175,7 +175,7 @@ function comprobarTodosProductos(){
         // /TODO      
 
         
-        $producto->Sku = $sku; = $producto->Sku_Provider;
+        $producto->Sku = $producto->Sku_Provider;
         // Sku nos llega con 10000-SKU
         $pos = strpos($producto->Sku, '-');
         if ($pos !== false) {

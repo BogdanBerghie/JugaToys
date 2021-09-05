@@ -100,7 +100,7 @@ function configuracionInicial(){
 
 
   //TODO: Test, quitar despues
-  // add_action( 'woocommerce_checkout_order_processed', 'jugatoys_action_pago_realizado', 10, 1 ); 
+  //add_action( 'woocommerce_checkout_order_processed', 'jugatoys_action_pago_realizado', 10, 1 ); 
   
 
 
@@ -113,7 +113,7 @@ function jugatoys_activate(){
 
   //Creamos cron que correrá dos veces al día para consultar productos nuevos. Servirá también para hacer la carga inicial
   if (! wp_next_scheduled ( 'jugatoys_nuevos_productos_cron')) {
-    wp_schedule_event( time(), 'twicedaily', 'jugatoys_nuevos_productos_cron' );
+    wp_schedule_event( time(), 'twicedaily', 'jugatoys_nuevos_productos_cron' );//
   }
 
 }

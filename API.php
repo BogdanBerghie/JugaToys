@@ -24,6 +24,8 @@ class JugaToysAPI{
     curl_setopt($this->ch, CURLOPT_FOLLOWLOCATION, 1);
     curl_setopt($this->ch, CURLOPT_SSL_VERIFYPEER, 0);
 
+
+    // curl_setopt($this->ch, CURLOPT_NOBODY, TRUE); // remove body
   }
 
   public function productInfo($arrayIds = array(), $updated_from = false){
@@ -105,6 +107,7 @@ class JugaToysAPI{
     ));
 
     jugatoys_log("-------------------------------");
+    jugatoys_log("Petición POST");
     jugatoys_log(["url", $url]);
     jugatoys_log(["jsonData", $jsonData]);
 
@@ -121,6 +124,7 @@ class JugaToysAPI{
     curl_close($this->ch);
 
     jugatoys_log(["httpCode", $httpCode]);
+    jugatoys_log(["Result", json_decode($respuesta)->Result]);
     jugatoys_log("-------------------------------");
 
     if($httpCode < 400)
