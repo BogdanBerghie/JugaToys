@@ -303,14 +303,12 @@ function existeSKU($sku){
   if($i != strlen($sku)){
     $numeros_sku = substr($sku, 0, $i);
     $letras_sku = substr($sku, $i);
-    $nuevo_sku = intval($letras_sku.$numeros_sku);
-    $product_id = wc_get_product_id_by_sku($nuevo_sku);
+    $product_id = wc_get_product_id_by_sku($letras_sku.$numeros_sku);
     if($product_id) return $product_id;
 
     //si no se ha encontrado, tratamos caso 2
     // 1PIRRITX API => WP PIRRITX-1
-    $nuevo_sku = intval($letras_sku.'-'.$numeros_sku);
-    $product_id = wc_get_product_id_by_sku($nuevo_sku);
+    $product_id = wc_get_product_id_by_sku($letras_sku.'-'.$numeros_sku);
     if($product_id) return $product_id;
   }
 
