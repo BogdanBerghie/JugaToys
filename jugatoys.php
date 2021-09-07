@@ -2,9 +2,9 @@
 /*
 Plugin Name: JugaToys
 Plugin URI: https://serinfor.net
-Description: Plugin para guardar datos de presupuestos automáticos
-Version: 1.0
-Author: Jon Alain Hinojosa & Bogdan 
+Description: Plugin para guardar datos de presupuestos automáticos. Separa el ÓODIGO del PROVEEDOR del CÓDIGO del ARTÍCULO. Prueba 3 casuisticas comunes antes de dar de alta artículos nuevos y si no hay coincidencias no crea el producto. utilidades.php función: $idProducto = existeSKU($producto->Sku);
+Version: 1.3
+Author: Jon Alain Hinojosa & Bogdan Berghie
 Author URI: https://serinfor.net
 License: GPL2
 */
