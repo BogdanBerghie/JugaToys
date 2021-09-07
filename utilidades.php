@@ -155,6 +155,9 @@ function comprobarTodosProductos(){
   $api = new JugaToysAPI();
   $productInfo = $api->productInfo(array(), $fechaUltimaComprobacionProductos);
 
+  var_dump($fechaUltimaComprobacionProductos);
+  var_dump($productInfo->Data);die();
+
   $productosInsertados = 0;
   $productosPasados = 0;
 
@@ -164,14 +167,15 @@ function comprobarTodosProductos(){
       foreach ($productos as $key => $producto) {
 
         // TODO: Test, quitar despues
-        //if (empty($producto->UrlImage)) {
-        // if ($producto->Stock == 0 || $producto->PVP == 0) {
-        //   $productosPasados++;
-        //   continue;
-        // }
-        // if ($productosInsertados > 0) {
-        //   wp_die();
-        // }
+        if ($productosInsertados > 0 || $productosPasados > 5) {
+          wp_die();
+        }
+        if (empty($producto->UrlImage)) {
+          if ($producto->Stock == 0 || $producto->PVP == 0) {
+            $productosPasados++;
+            continue;
+          }
+        }
         // /TODO      
 
         
@@ -276,8 +280,42 @@ function actualizarStockProductos(){
 
 
 function existeSKU($sku){
+
   $product_id = wc_get_product_id_by_sku($sku);
-  return ($product_id == 0) ? false : $product_id;
+  if($product_id) return $product_id;
+
+  //si no se ha encontrado, tratamos caso 1
+  // 2671 API =>  WP 02671
+  $nuevo_sku = intval($sku);
+  $product_id = wc_get_product_id_by_sku($nuevo_sku);
+  if($product_id) return $product_id;
+
+  //si no se ha encontrado, tratamos caso 2
+  // 500TT API => WP TT500
+  $i = 0;
+  for ($i=0; $i < strlen($sku); $i++) { 
+    if (!is_numeric($sku[$i])) {
+      break;
+    }
+  }
+
+  //Si hay alguna letra iniciamos comprobaciones
+  if($i != strlen($sku)){
+    $numeros_sku = substr($sku, 0, $i);
+    $letras_sku = substr($sku, $i);
+    $nuevo_sku = intval($letras_sku.$numeros_sku);
+    $product_id = wc_get_product_id_by_sku($nuevo_sku);
+    if($product_id) return $product_id;
+
+    //si no se ha encontrado, tratamos caso 2
+    // 1PIRRITX API => WP PIRRITX-1
+    $nuevo_sku = intval($letras_sku.'-'.$numeros_sku);
+    $product_id = wc_get_product_id_by_sku($nuevo_sku);
+    if($product_id) return $product_id;
+  }
+
+  return false;
+
 }
 
 // function existeSKU($sku){
@@ -311,7 +349,10 @@ function altaProducto($producto){
     $new_simple_product->set_downloadable( 'no' );
     $new_simple_product->set_virtual( 'no' );
 
+
     if (!empty($producto['UrlImage'])) {
+  
+      jugatoys_log("altaProducto - Obteniendo imagen:");
 
       $options = get_option( 'jugatoys_settings' );
       $url = parse_url($options['url']);
@@ -320,6 +361,8 @@ function altaProducto($producto){
 
       $attach_id = descargarImagen($new_simple_product->get_id(), $urlImagen, $nombreImagen);
       $new_simple_product->set_image_id($attach_id);
+
+      jugatoys_log("altaProducto - Imagen guardada: ". $attach_id);
       
     }
 
@@ -342,6 +385,8 @@ function altaProducto($producto){
 
     $numeroActualizacion = get_option( 'jugatoys_numero_actualizacion');
     update_post_meta( $new_simple_product->get_id(), '_jugatoys_numero_actualizacion', $numeroActualizacion );
+
+    jugatoys_log("altaProducto - OK: " . $new_simple_product->get_id());
 
     return $new_simple_product->get_id();
 
@@ -482,13 +527,14 @@ add_action( 'wp_ajax_pruebaAPI', 'pruebaAPI' );
 //función de pruebas que se llama desde HOST/wp-admin/admin-ajax.php?action=pruebaAPI
 function pruebaAPI(){
 
+
   ini_set('display_errors', '1');
   ini_set('display_startup_errors', '1');
   error_reporting(E_ALL);
   echo "<pre>";
 
-  // comprobarTodosProductos();
-  // wp_die();
+  comprobarTodosProductos();
+  wp_die();
 
   // var_dump(wp_set_object_terms(2920, "Fabricante prueba", "pwb-brand"));
 
