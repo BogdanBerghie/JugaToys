@@ -188,10 +188,11 @@ function comprobarTodosProductos(){
 
         $idProducto = existeSKU($producto->Sku);
         if (!$idProducto) {
-          if (altaProducto((array)$producto)) {
-            $productosInsertados++;
-            jugatoys_log($producto);          
-          }
+          jugatoys_log("ERROR - SKU no localizado: ". $producto->Sku);
+          // if (altaProducto((array)$producto)) {
+          //   $productosInsertados++;
+          //   jugatoys_log($producto);          
+          // }
         }else{
           update_post_meta($idProducto, '_sku_jugatoys', $producto->Sku_Provider );
         }
