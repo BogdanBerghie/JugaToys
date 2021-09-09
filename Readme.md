@@ -22,6 +22,10 @@ Plugin para vincular contra el TPV de JugaToys
 # Descripción
 ### Versión: 1.3.2
 
+Solución de error que impedía cargar textos al encontrar SKUs
+
+### Versión: 1.3.2
+
 Ahora quedará de que forma se encuentra un **SKU** en el log
 
 ### Versión: 1.3.1
