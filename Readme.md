@@ -20,6 +20,10 @@ Plugin para vincular contra el TPV de JugaToys
 - Notificación de venta
 
 # Descripción
+### Versión: 1.3.2
+
+Ahora quedará de que forma se encuentra un **SKU** en el log
+
 ### Versión: 1.3.1
 
 Antes de dividir el codigo **SKU** comprueba si existe articulos con el sku de jugatoys

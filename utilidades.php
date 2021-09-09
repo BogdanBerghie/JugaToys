@@ -188,8 +188,7 @@ function comprobarTodosProductos(){
           //   jugatoys_log($producto);          
           // }
         }else{
-          jugatoys_log("SKU COMPLETO Encontrado: ". $producto->Sku);
-          //Comentamos la linea de abajo para no dar de alta productos antes de comprobar manualmente que esta todo correcto.
+          jugatoys_log($skuDescripcion. $producto->Sku);
           //update_post_meta($idProducto, '_sku_jugatoys', $producto->Sku_Provider );
         }
       }
@@ -277,10 +276,14 @@ function actualizarStockProductos(){
 
 
 function existeSKU($sku){
+$skuDescripcion;
 
   //Primero probamos con el SKU completo (10000-SKU)
   $product_id = wc_get_product_id_by_sku($sku);
-  if($product_id) return $product_id;
+  if($product_id){
+    $skuDescripcion = "SKU COMPLETO: ";
+    return $product_id;
+  } 
 
   // Probamos quitando el codigo del proveedor: 10000-SKU
   $pos = strpos($sku, '-');
@@ -288,13 +291,19 @@ function existeSKU($sku){
     $sku = substr($sku, $pos+1);
   }
   $product_id = wc_get_product_id_by_sku($sku);
-  if($product_id) return $product_id;
+  if($product_id){
+    $skuDescripcion = "SKU SIN COD. PROVEEDOR: ";
+    return $product_id;
+  } 
 
   //si no se ha encontrado, tratamos caso 1
   // 2671 API =>  WP 02671
   $nuevo_sku = intval($sku);
   $product_id = wc_get_product_id_by_sku($nuevo_sku);
-  if($product_id) return $product_id;
+  if($product_id){
+    $skuDescripcion = "SKU CASUISTICA 1: ";
+    return $skuCaso1.$product_id;
+  } 
 
   //si no se ha encontrado, tratamos caso 2
   // 500TT API => WP TT500
@@ -315,7 +324,10 @@ function existeSKU($sku){
     //si no se ha encontrado, tratamos caso 2
     // 1PIRRITX API => WP PIRRITX-1
     $product_id = wc_get_product_id_by_sku($letras_sku.'-'.$numeros_sku);
-    if($product_id) return $product_id;
+    if($product_id){
+      $skuDescripcion = "SKU CASUISTICA 2: ";
+      return $skuCaso2.$product_id;
+    } 
   }
 
   return false;
