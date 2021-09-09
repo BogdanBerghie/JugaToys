@@ -188,7 +188,7 @@ function comprobarTodosProductos(){
           //   jugatoys_log($producto);          
           // }
         }else{
-          jugatoys_log($skuDescripcion. $producto->Sku);
+          jugatoys_log("ENCONTRADO - ". $producto->Sku);
           //update_post_meta($idProducto, '_sku_jugatoys', $producto->Sku_Provider );
         }
       }
@@ -276,12 +276,11 @@ function actualizarStockProductos(){
 
 
 function existeSKU($sku){
-$skuDescripcion;
 
   //Primero probamos con el SKU completo (10000-SKU)
   $product_id = wc_get_product_id_by_sku($sku);
   if($product_id){
-    $skuDescripcion = "SKU COMPLETO: ";
+    jugatoys_log("SKU COMPLETO: ");
     return $product_id;
   } 
 
@@ -292,7 +291,7 @@ $skuDescripcion;
   }
   $product_id = wc_get_product_id_by_sku($sku);
   if($product_id){
-    $skuDescripcion = "SKU SIN COD. PROVEEDOR: ";
+    jugatoys_log("SKU SIN COD. PROVEEDOR: ");
     return $product_id;
   } 
 
@@ -301,8 +300,8 @@ $skuDescripcion;
   $nuevo_sku = intval($sku);
   $product_id = wc_get_product_id_by_sku($nuevo_sku);
   if($product_id){
-    $skuDescripcion = "SKU CASUISTICA 1: ";
-    return $skuCaso1.$product_id;
+    jugatoys_log("SKU CASUISTICA 1: ");
+    return $product_id;
   } 
 
   //si no se ha encontrado, tratamos caso 2
@@ -325,8 +324,8 @@ $skuDescripcion;
     // 1PIRRITX API => WP PIRRITX-1
     $product_id = wc_get_product_id_by_sku($letras_sku.'-'.$numeros_sku);
     if($product_id){
-      $skuDescripcion = "SKU CASUISTICA 2: ";
-      return $skuCaso2.$product_id;
+      jugatoys_log("SKU CASUISTICA 2: ");
+      return $product_id;
     } 
   }
 
