@@ -1,3 +1,4 @@
+# JUGATOYS 
    ___                   _                  
   |_  |                 | |                 
     | |_   _  __ _  __ _| |_ ___  _   _ ___ 
@@ -17,3 +18,18 @@ Plugin para vincular contra el TPV de JugaToys
 - Cron dos veces al día para comprobar productos nuevos
 - Cron para checkear stock configurable desde ajustes
 - Notificación de venta
+
+# Descripción
+### Versión: 1.3.1
+
+Antes de dividir el codigo **SKU** comprueba si existe articulos con el sku de jugatoys
+
+### Versión:1.3
+
+Separa el **CÓDIGO** del **PROVEEDOR** del **CÓDIGO** del **ARTÍCULO**. 
+
+> Si un articulo entra como: 10000-70151 el conector guarda el **código del articulo** (70151) como **SKU** y crea el *metadato* **_sku_jugatoys** en el que se guarda el SKU completo (10000-70151) para luego poder hacer las operacioenes en las que se necesite el SKU completo. 
+
+Prueba 3 casuisticas comunes antes de dar de alta artículos nuevos y si no hay coincidencias no crea el producto.
+
++ **utilidades.php** función: $idProducto = existeSKU($producto->Sku);

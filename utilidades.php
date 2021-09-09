@@ -156,7 +156,7 @@ function comprobarTodosProductos(){
   $productInfo = $api->productInfo(array(), $fechaUltimaComprobacionProductos);
 
   var_dump($fechaUltimaComprobacionProductos);
-  var_dump($productInfo->Data);die();
+  var_dump($productInfo->Data);
 
   $productosInsertados = 0;
   $productosPasados = 0;
@@ -180,12 +180,6 @@ function comprobarTodosProductos(){
 
         
         $producto->Sku = $producto->Sku_Provider;
-        // Sku nos llega con 10000-SKU
-        $pos = strpos($producto->Sku, '-');
-        if ($pos !== false) {
-          $producto->Sku = substr($producto->Sku, $pos+1);
-        }
-
         $idProducto = existeSKU($producto->Sku);
         if (!$idProducto) {
           jugatoys_log("ERROR - SKU no localizado: ". $producto->Sku);
@@ -194,7 +188,9 @@ function comprobarTodosProductos(){
           //   jugatoys_log($producto);          
           // }
         }else{
-          update_post_meta($idProducto, '_sku_jugatoys', $producto->Sku_Provider );
+          jugatoys_log("SKU COMPLETO Encontrado: ". $producto->Sku);
+          //Comentamos la linea de abajo para no dar de alta productos antes de comprobar manualmente que esta todo correcto.
+          //update_post_meta($idProducto, '_sku_jugatoys', $producto->Sku_Provider );
         }
       }
       
@@ -282,6 +278,15 @@ function actualizarStockProductos(){
 
 function existeSKU($sku){
 
+  //Primero probamos con el SKU completo (10000-SKU)
+  $product_id = wc_get_product_id_by_sku($sku);
+  if($product_id) return $product_id;
+
+  // Probamos quitando el codigo del proveedor: 10000-SKU
+  $pos = strpos($sku, '-');
+  if ($pos !== false) {
+    $sku = substr($sku, $pos+1);
+  }
   $product_id = wc_get_product_id_by_sku($sku);
   if($product_id) return $product_id;
 
