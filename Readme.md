@@ -20,6 +20,9 @@ Plugin para vincular contra el TPV de JugaToys
 - Notificación de venta
 
 # Descripción
+### Versión: 1.3.4
+Ahroa al interactuar con un producto se actualizá el **título**, el **precio** y el Stock.
+
 ### Versión: 1.3.2
 
 Solución de error que impedía cargar textos al encontrar SKUs
