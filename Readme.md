@@ -20,6 +20,9 @@ Plugin para vincular contra el TPV de JugaToys
 - Notificación de venta
 
 # Descripción
+### Versión: 1.3.5
+Al encontrar un SKU al quitar el código proveedor actualizará el SKU del artículo por el SKU que ha mandado el TPV. Esto se hace por que se da por hecho que el código artículo está bien pero el Cod. proveedor esta mal. (Codigo proveedor ejemplos : **10000**-70100, **33**-40123, **16**-12345, etc.)
+
 ### Versión: 1.3.4
 Ahroa al interactuar con un producto se actualizá el **título**, el **precio** y el Stock.
 

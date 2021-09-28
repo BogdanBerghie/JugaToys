@@ -101,12 +101,12 @@ function actualizarStockSku($aProductId_Sku = array())
             foreach ($productInfo->Data as $key => $pData) {
 
                 if (!empty($pData->Sku_Provider)) {
-                    //Confirmamos que hayamos solicitado el SKU, precio y descripción
+                    //Confirmamos que hayamos solicitado el SKU.
                     $idProducto = array_search($pData->Sku_Provider, $aProductId_Sku);
                     if ($idProducto !== false) {
                         //Si coincide el SKU, actualizamos stock
                         $stock = absint($pData->Stock);
-                        //BOGDAN_TODO
+                        //BOGDAN v1.3.4 - A peticion del cliente se configura que tambien actualice el prescio y el titulo de articulos al interactuar con ellos. 
                         $PVP = $pData->PVP;
                         $Product_Name = $pData->Product_Name;
                         $productIdBySKU = wc_get_product_id_by_sku($pData->Sku_Provider);
@@ -294,22 +294,29 @@ function actualizarStockProductos()
 
 function existeSKU($sku)
 {
+    $skuDeJugaToys = $sku;
 
     //Primero probamos con el SKU completo (10000-SKU)
     $product_id = wc_get_product_id_by_sku($sku);
     if ($product_id) {
-        jugatoys_log("SKU COMPLETO: ");
+        jugatoys_log(["SKU COMPLETO: ". $sku]);
         return $product_id;
     }
 
-    // Probamos quitando el codigo del proveedor: 10000-SKU
+    // Probamos quitando el codigo del proveedor: 10000-SKU CASO 0 
     $pos = strpos($sku, '-');
     if ($pos !== false) {
         $sku = substr($sku, $pos + 1);
     }
     $product_id = wc_get_product_id_by_sku($sku);
     if ($product_id) {
-        jugatoys_log("SKU SIN COD. PROVEEDOR: ");
+
+        //BOGDAN v1.3.5 - Como ha encontrado el articulo sin el codigo proveedor vamos a actualizar el SKU para que sean iguales en página web tpv
+        
+        update_post_meta($product_id, '_sku', $skuDeJugaToys);
+        jugatoys_log(["SKU SIN COD. PROVEEDOR. NUEVO SKU: ". $skuDeJugaToys. " REMPLAZARA A: ". $sku]);
+
+        //BOGDAN v1.3.5
         return $product_id;
     }
 
