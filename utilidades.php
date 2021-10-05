@@ -47,10 +47,15 @@ function actualizarStockIdProducto($aIdProducto = array())
         //Obtenemos SKU del producto, para consultar contra la API
         // $sku = get_post_meta($idProducto, '_sku', true);
         $sku = get_post_meta($idProducto, '_sku_jugatoys', true);
+        $product = wc_get_product( $idProducto );
+        if(empty($sku)) $sku = $product->get_sku();
         if (!empty($sku)) {
             $aProductId_Sku[$idProducto] = $sku;
         }
     }
+    
+    // jugatoys_log(["Corriendo actualizarStockIdProducto aIdProducto: ", $aIdProducto]);
+    jugatoys_log(["Corriendo actualizarStockIdProducto aProductId_Sku: ", $aProductId_Sku]);
 
     //Si no se han obtenido SKUs, devolvemos
     if (empty($aProductId_Sku)) {
@@ -91,6 +96,7 @@ function actualizarStockSku($aProductId_Sku = array())
 
         //Verificamos que haya datos
         if (!empty($productInfo->Data)) {
+            // jugatoys_log(["productInfo response data: ",$productInfo->Data]);
 
             //Si solo devuelve un dato, quizá devuelva el objeto directamente en vez de array. Confirmamos, y convertimos en array si es preciso para que encaje en lógica
             if (!is_array($productInfo->Data)) {
@@ -108,26 +114,38 @@ function actualizarStockSku($aProductId_Sku = array())
                         $stock = absint($pData->Stock);
                         //BOGDAN v1.3.4 - A peticion del cliente se configura que tambien actualice el prescio y el titulo de articulos al interactuar con ellos. 
                         $PVP = $pData->PVP;
-                        $Product_Name = $pData->Product_Name;
-                        $productIdBySKU = wc_get_product_id_by_sku($pData->Sku_Provider);
-                        wp_update_post([
-                            'ID' => $productIdBySKU,
-                            'post_title' => $Product_Name,
-                        ]);
+						
+                        //BOGDAN v1.3.6 - A peticion de Ander. No quiere que se actualice el nombre. 
+//                        $Product_Name = $pData->Product_Name;
+//                        $productIdBySKU = wc_get_product_id_by_sku($pData->Sku_Provider);
+//                        wp_update_post([
+//                            'ID' => $productIdBySKU,
+//                            'post_title' => $Product_Name,
+//                        ]);
+                        //BOGDAN - v1.2.6
 
                         wc_update_product_stock($idProducto, $stock, 'set');
                         update_post_meta($idProducto, '_price', $PVP);
-
-                        jugatoys_log(["Descripcion actualizado: ", $Product_Name]);
-                        jugatoys_log(["precio actualizado: ", $PVP]);
+                        //BOGDAN v1.3.6 
+                        jugatoys_log([
+                            "SKU de articulo seleccionado: ". $pData->Sku_Provider,
+							//BOGDAN v1.3.6 - A peticion de Ander. No quiere que se actualice el nombre.
+                            //"Descripcion actualizado: ". $Product_Name, 
+                            //BOGDAN - v1.2.6 
+                            "precio actualizado: ". $PVP, 
+                            "Stock actualizado: ". $stock
+                                ]);
+                        //BOGDAN v1.3.6
                         //BOGDAN
-                        jugatoys_log(["Stock actualizado: ", $stock]);
-
-                        update_post_meta($idProducto, '_jugatoys_numero_actualizacion', $numeroActualizacion);
+                        
                     }
 
                 }
 
+            }
+
+            foreach($aProductId_Sku as $idProducto => $sku){
+                update_post_meta($idProducto, '_jugatoys_numero_actualizacion', $numeroActualizacion);
             }
 
         } else {
@@ -166,7 +184,7 @@ function comprobarTodosProductos()
     jugatoys_log("Corriendo comprobarTodosProductos");
 
     //Checkeamos si se ha lanzado alguna vez o es la primera.
-    $fechaUltimaComprobacionProductos = get_option("jugatoys_fechaUltimaComprobacionProductos");
+    $fechaUltimaComprobacionProductos = false;//get_option("jugatoys_fechaUltimaComprobacionProductos");
     if ($fechaUltimaComprobacionProductos == false) {
         $fechaUltimaComprobacionProductos = "2000-07-01";
     }
@@ -186,15 +204,15 @@ function comprobarTodosProductos()
             foreach ($productos as $key => $producto) {
 
                 // TODO: Test, quitar despues
-                if ($productosInsertados > 0 || $productosPasados > 5) {
-                    wp_die();
-                }
-                if (empty($producto->UrlImage)) {
-                    if ($producto->Stock == 0 || $producto->PVP == 0) {
-                        $productosPasados++;
-                        continue;
-                    }
-                }
+//                if ($productosInsertados > 0 || $productosPasados > 5) {
+//                    wp_die();
+//                }
+//                if (empty($producto->UrlImage)) {
+//                    if ($producto->Stock == 0 || $producto->PVP == 0) {
+//                        $productosPasados++;
+//                        continue;
+//                    }
+//                }
                 // /TODO
 
                 $producto->Sku = $producto->Sku_Provider;
@@ -207,7 +225,7 @@ function comprobarTodosProductos()
                     // }
                 } else {
                     jugatoys_log("ENCONTRADO - " . $producto->Sku);
-                    //update_post_meta($idProducto, '_sku_jugatoys', $producto->Sku_Provider );
+                    update_post_meta($idProducto, '_sku_jugatoys', $producto->Sku_Provider );
                 }
             }
 
@@ -243,16 +261,23 @@ function actualizarStockProductos()
         "numberposts" => $opciones['sincronizaciones_diarias_numero_productos'],
         "post_type" => "product",
         'meta_query' => array(
-            'relation' => 'OR',
+            'relation' => 'AND',
             array(
-                'key' => '_jugatoys_numero_actualizacion',
-                'value' => $numeroActualizacion,
-                'type' => 'numeric',
-                'compare' => '<',
+                'key' => '_sku',
+                'compare' => 'EXISTS',
             ),
             array(
-                'key' => '_jugatoys_numero_actualizacion',
-                'compare' => 'NOT EXISTS',
+                'relation' => 'OR',
+                array(
+                    'key' => '_jugatoys_numero_actualizacion',
+                    'value' => $numeroActualizacion,
+                    'type' => 'numeric',
+                    'compare' => '<',
+                ),
+                array(
+                    'key' => '_jugatoys_numero_actualizacion',
+                    'compare' => 'NOT EXISTS',
+                ),
             ),
         ),
     );
@@ -268,8 +293,8 @@ function actualizarStockProductos()
             $aIdProdcutos[] = $producto->ID;
         }
 
-        jugatoys_log("Nº " . $numeroActualizacion . " - Obtenidos: ");
-        jugatoys_log($productos);
+        // jugatoys_log("Nº " . $numeroActualizacion . " - Obtenidos: ");
+        // jugatoys_log($productos);
 
         //Actualizamos productos
         actualizarStockIdProducto($aIdProdcutos);
@@ -313,8 +338,8 @@ function existeSKU($sku)
 
         //BOGDAN v1.3.5 - Como ha encontrado el articulo sin el codigo proveedor vamos a actualizar el SKU para que sean iguales en página web tpv
         
-        update_post_meta($product_id, '_sku', $skuDeJugaToys);
         jugatoys_log(["SKU SIN COD. PROVEEDOR. NUEVO SKU: ". $skuDeJugaToys. " REMPLAZARA A: ". $sku]);
+        update_post_meta($product_id, '_sku', $skuDeJugaToys);
 
         //BOGDAN v1.3.5
         return $product_id;
@@ -406,6 +431,8 @@ function altaProducto($producto)
             jugatoys_log("altaProducto - Imagen guardada: " . $attach_id);
 
         }
+
+        $new_simple_product->set_status("draft");
 
         $new_simple_product->save();
 
@@ -516,7 +543,8 @@ function notificarVenta($orderId)
     foreach ($order->get_items() as $item_key => $item) {
         $producto = $item->get_product();
         $idProducto = $item->get_id();
-        $sku = get_post_meta($idProducto, '_sku_jugatoys', true);
+        $sku = get_post_meta($idProducto, '_sku_jugatoys', true);        
+        if(empty($sku)) $item->get_sku();
         $lineas[] = (object) array(
             "Sku_Provider" => $sku,
             "Quantity" => $item->get_quantity(),
