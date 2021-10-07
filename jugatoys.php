@@ -3,13 +3,11 @@
 Plugin Name: JugaToys
 Plugin URI: https://serinfor.net
 Description: Plugin para guardar datos de presupuestos automáticos. 
-Version: 1.3.5
+Version: 1.3.7
 Author: Jon Alain Hinojosa & Bogdan Berghie
 Author URI: https://serinfor.net
 License: GPL2
 */
-
-// Disculpa, no sé tu apellido. Añádelo arriba.
 
 include_once("API.php");
 include_once("opciones.php");

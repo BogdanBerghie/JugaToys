@@ -184,7 +184,7 @@ function comprobarTodosProductos()
     jugatoys_log("Corriendo comprobarTodosProductos");
 
     //Checkeamos si se ha lanzado alguna vez o es la primera.
-    $fechaUltimaComprobacionProductos = false;//get_option("jugatoys_fechaUltimaComprobacionProductos");
+    $fechaUltimaComprobacionProductos = get_option("jugatoys_fechaUltimaComprobacionProductos");
     if ($fechaUltimaComprobacionProductos == false) {
         $fechaUltimaComprobacionProductos = "2000-07-01";
     }
@@ -219,10 +219,10 @@ function comprobarTodosProductos()
                 $idProducto = existeSKU($producto->Sku);
                 if (!$idProducto) {
                     jugatoys_log("ERROR - SKU no localizado: " . $producto->Sku);
-                    // if (altaProducto((array)$producto)) {
-                    //   $productosInsertados++;
-                    //   jugatoys_log($producto);
-                    // }
+                     if (altaProducto((array)$producto)) {
+                       $productosInsertados++;
+                       jugatoys_log($producto);
+                     }
                 } else {
                     jugatoys_log("ENCONTRADO - " . $producto->Sku);
                     update_post_meta($idProducto, '_sku_jugatoys', $producto->Sku_Provider );
@@ -422,7 +422,9 @@ function altaProducto($producto)
 
             $options = get_option('jugatoys_settings');
             $url = parse_url($options['url']);
-            $urlImagen = $url['scheme'] . "://" . $url['host'] . str_replace("/TPV", "", $url['path']) . $producto['UrlImage'];
+            $url['port'] = $puerto;
+
+            $urlImagen = $url['scheme'] . "://" . $url['host'] .":". $url['port'] . str_replace("/TPV", "", $url['path']) . $producto['UrlImage'];
             $nombreImagen = basename($producto['UrlImage']);
 
             $attach_id = descargarImagen($new_simple_product->get_id(), $urlImagen, $nombreImagen);

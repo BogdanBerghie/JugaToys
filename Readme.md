@@ -20,6 +20,20 @@ Plugin para vincular contra el TPV de JugaToys
 - Notificación de venta
 
 # Descripción
+### Versión: 1.3.7 - Bogdan - 07/10/2021.
+La url que se estaba formando para las imagenes de los artículos nuevos no tenian el puerto puesto y eso impedia descargar las imagenes de los artículos. 
+
+Se añade el puerto.
+
+### Versión: 1.3.6 - Alain 
+Se reestructura al forma de dar de alta artículos nuevos. 
+Había artículos en la página web que no existian en el TPV y al intentar sobreescribir el SKU de la página web con el SKU de un artículo (del TPV) que no existia se abortaba el proceso.
+
+Ahora al comprobar si existe o no un artículo de la página web en el TPV pueden ocurrir estas 3 situaciones: 
++ 1. EXISTEN en ambos sitios, por lo tanto actualizará el SKU de la página web por el sku del TPV
++ 2. EXISTE en la **página web** pero **NO** en el **TPV**, NO hará nada.
++ 3. EXISTE en el **TPV** pero **NO** en la página web. Se dará de alta como un artículo **NUEVO** 
+
 ### Versión: 1.3.5
 Al encontrar un SKU al quitar el código proveedor actualizará el SKU del artículo por el SKU que ha mandado el TPV. Esto se hace por que se da por hecho que el código artículo está bien pero el Cod. proveedor esta mal. (Codigo proveedor ejemplos : **10000**-70100, **33**-40123, **16**-12345, etc.)
 
