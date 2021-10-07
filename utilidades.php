@@ -421,6 +421,7 @@ function altaProducto($producto)
             jugatoys_log("altaProducto - Obteniendo imagen:");
 
             $options = get_option('jugatoys_settings');
+            $puerto = $options['puerto'];
             $url = parse_url($options['url']);
             $url['port'] = $puerto;
 
