@@ -184,7 +184,7 @@ function comprobarTodosProductos()
     jugatoys_log("Corriendo comprobarTodosProductos");
 
     //Checkeamos si se ha lanzado alguna vez o es la primera.
-    $fechaUltimaComprobacionProductos = get_option("jugatoys_fechaUltimaComprobacionProductos");
+    $fechaUltimaComprobacionProductos = false; //get_option("jugatoys_fechaUltimaComprobacionProductos");
     if ($fechaUltimaComprobacionProductos == false) {
         $fechaUltimaComprobacionProductos = "2000-07-01";
     }
@@ -428,6 +428,8 @@ function altaProducto($producto)
             $urlImagen = $url['scheme'] . "://" . $url['host'] .":". $url['port'] . str_replace("/TPV", "", $url['path']) . $producto['UrlImage'];
             $nombreImagen = basename($producto['UrlImage']);
 
+			jugatoys_log("URL de la IMAGEN:". $urlImagen);
+			
             $attach_id = descargarImagen($new_simple_product->get_id(), $urlImagen, $nombreImagen);
             $new_simple_product->set_image_id($attach_id);
 
@@ -545,9 +547,10 @@ function notificarVenta($orderId)
     $order = wc_get_order($orderId);
     foreach ($order->get_items() as $item_key => $item) {
         $producto = $item->get_product();
+        $item_data = $item->get_data();
         $idProducto = $item->get_id();
         $sku = get_post_meta($idProducto, '_sku_jugatoys', true);        
-        if(empty($sku)) $item->get_sku();
+        if(empty($sku)) $producto->get_sku();
         $lineas[] = (object) array(
             "Sku_Provider" => $sku,
             "Quantity" => $item->get_quantity(),
@@ -556,6 +559,11 @@ function notificarVenta($orderId)
         );
     }
 
+	//TEST TODO 
+    jugatoys_log("----------------------------------------------------");
+    jugatoys_log("Realizando notificar venta");
+    jugatoys_log($lineas);
+	
     $api = new JugaToysAPI();
 
     $respuesta = $api->ticketInsert($orderId, 'TPV', $lineas);
@@ -603,6 +611,34 @@ function pruebaAPI()
     ini_set('display_startup_errors', '1');
     error_reporting(E_ALL);
     echo "<pre>";
+
+    wp_die();
+
+    $orderId = 42219;
+    
+    $lineas = array();
+    $order = wc_get_order($orderId);
+    var_dump($order);
+    var_dump($order->get_items());
+    foreach ($order->get_items() as $item_key => $item) {
+        $producto = $item->get_product();
+        $item_data = $item->get_data();
+        $idProducto = $item->get_id();
+        $sku = get_post_meta($idProducto, '_sku_jugatoys', true);        
+        if(empty($sku)) $producto->get_sku();
+        $lineas[] = (object) array(
+            "Sku_Provider" => $sku,
+            "Quantity" => $item->get_quantity(),
+            "PVP" => $producto->get_price(),
+            "IVA" => ($item_data['tax_class']) ? $item_data['tax_class'] : 21,
+        );
+    }
+
+	//TEST TODO 
+    var_dump($lineas);
+
+
+    wp_die();
 
     comprobarTodosProductos();
     wp_die();
