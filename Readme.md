@@ -20,6 +20,13 @@ Plugin para vincular contra el TPV de JugaToys
 - Notificación de venta
 
 # Descripción
+### Versión: 1.3.8 - Bogdan - 18/10/2021.
++ Se cambia el HOOK usado en el Action de notificar venta de woocommerce_new_order --> woocommerce_payment_complete para solucionar un problema que se daba al trabajar con $OrderId.
+
++ Se añaden varios cambios para corregir el EAN que se estaba definiendo de una forma no esperada por woocommerce. Ahora cuando se vaya a  definier la metaKey _ean se duplicará el valor para guardarlo en _alg_ean.
+
++ Se crea la funcion conseguirUnSoloEAN(); en utilidades para quedarnos con un solo EAN para el metadato _alg_ean en los casos en los que vengan varios EANs 
+
 ### Versión: 1.3.7 - Bogdan - 07/10/2021.
 La url que se estaba formando para las imagenes de los artículos nuevos no tenian el puerto puesto y eso impedia descargar las imagenes de los artículos. 
 

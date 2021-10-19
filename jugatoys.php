@@ -3,7 +3,7 @@
 Plugin Name: JugaToys
 Plugin URI: https://serinfor.net
 Description: Plugin para guardar datos de presupuestos automáticos. 
-Version: 1.3.7.1
+Version: 1.3.8
 Author: Jon Alain Hinojosa & Bogdan Berghie
 Author URI: https://serinfor.net
 License: GPL2
@@ -94,6 +94,7 @@ function configuracionInicial(){
   // En duda, otro posible hook
   // woocommerce_payment_complete_reduce_order_stock
   // https://woocommerce.github.io/code-reference/hooks/hooks.html
+  //woocommerce_new_order       woocommerce_payment_complete
   add_action( 'woocommerce_payment_complete', 'jugatoys_action_pago_realizado', 10, 1 ); 
 
 
