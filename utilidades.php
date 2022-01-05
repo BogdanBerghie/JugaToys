@@ -110,10 +110,16 @@ function actualizarStockSku($aProductId_Sku = array())
                     $idProducto = array_search($pData->Sku_Provider, $aProductId_Sku);
                     if ($idProducto !== false) {
                         //Si coincide el SKU, actualizamos stock
-                        $stock = absint($pData->Stock);
+                        $stock = $pData->Stock;
                         //BOGDAN v1.3.4 - A peticion del cliente se configura que tambien actualice el prescio y el titulo de articulos al interactuar con ellos.
                         $PVP = $pData->PVP;
-                        
+                        //BOGDAN v1.3.9 - Los artículos con un stock negativo los mostrará como Stock = 0.
+                        if($stock<0){
+                            jugatoys_log("Stock menor que 0 en SKU: ". $pData->Sku_Provider. " Stock se pone a 0");
+                            wc_update_product_stock($idProducto, 0, 'set');
+                        }else{
+                            wc_update_product_stock($idProducto, $stock, 'set');
+                        } 
                         //BOGDAN v1.3.6 - A peticion de Ander. No quiere que se actualice el nombre.
 //                        $Product_Name = $pData->Product_Name;
 //                        $productIdBySKU = wc_get_product_id_by_sku($pData->Sku_Provider);
@@ -177,7 +183,7 @@ function comprobarTodosProductos()
     jugatoys_log("Corriendo comprobarTodosProductos");
 
     //Checkeamos si se ha lanzado alguna vez o es la primera.
-    $fechaUltimaComprobacionProductos = false; //get_option("jugatoys_fechaUltimaComprobacionProductos");
+    $fechaUltimaComprobacionProductos = get_option("jugatoys_fechaUltimaComprobacionProductos");
     if ($fechaUltimaComprobacionProductos == false) {
         $fechaUltimaComprobacionProductos = "2000-07-01";
     }
@@ -210,6 +216,13 @@ function comprobarTodosProductos()
 
                 $producto->Sku = $producto->Sku_Provider;
                 $idProducto = existeSKU($producto->Sku);
+                // BOGDAN v1.3.9 - Ya no se dará de alta los artículos sin stock
+                if ($producto->Stock <= 0) {
+                    jugatoys_log(["NO STOCK SE IGNORA" , $producto]);
+                    $productosPasados++;
+                    continue;
+                }
+                
                 if (!$idProducto) {
                     jugatoys_log("ERROR - SKU no localizado: " . $producto->Sku);
                     if (altaProducto((array)$producto)) {
@@ -246,7 +259,7 @@ function actualizarStockProductos()
     jugatoys_log("Nº " . $numeroActualizacion . " - Corriendo actualizarStockProductos");
 
     //Activamos flag indicando que se están actualizando productos
-    update_option("jugatoys_actualizandoStockProductos", true);
+    update_option("jugatoys_actualizandoStockProductos", 1);
 
     $opciones = get_option('jugatoys_settings');
 
@@ -292,13 +305,16 @@ function actualizarStockProductos()
         //Actualizamos productos
         actualizarStockIdProducto($aIdProdcutos);
 
+        //Quitamos flag de actualización
+        update_option("jugatoys_actualizandoStockProductos", 0);
+        
         //Hacemos que función sea recursiva
         wp_schedule_single_event(time(), "jugatoys_actualizar_stock_productos");
     } else {
         jugatoys_log("Nº " . $numeroActualizacion . " - Finalizando actualizarStockProductos");
 
         //Quitamos flag de actualización
-        update_option("jugatoys_actualizandoStockProductos", false);
+        update_option("jugatoys_actualizandoStockProductos", 0);
 
         //Actualizamos numero de actualizacion
         $numeroActualizacion++;

@@ -3,7 +3,7 @@
 Plugin Name: JugaToys
 Plugin URI: https://serinfor.net
 Description: Plugin para guardar datos de presupuestos automáticos. 
-Version: 1.3.8
+Version: 1.3.9
 Author: Jon Alain Hinojosa & Bogdan Berghie
 Author URI: https://serinfor.net
 License: GPL2
@@ -43,10 +43,13 @@ function configuracionInicial(){
   //Función que se correra X veces al día, según lo que se haya establecido en opciones
   function cron_events_actualizar_stock_productos() {
     //Confirmamos flag que no se estén actualizando productos actualmente
-    $actualizandoStockProductos = get_option("jugatoys_actualizandoStockProductos");
     if (!$actualizandoStockProductos) {
-      wp_schedule_single_event(time(), "jugatoys_actualizar_stock_productos");
-    }
+      jugatoys_log("Valor de actualizandoStockProductos " . $actualizandoStockProductos);
+      //wp_schedule_single_event(time(), "jugatoys_actualizar_stock_productos");
+      actualizarStockProductos();
+    }else{
+      jugatoys_log("No ha inicado actualizarStockProductos. jugatoys_actualizandoStockProductos = ".$actualizandoStockProductos." Para funcionar poner a 0 ");
+    }   
   }
   add_action( 'jugatoys_actualizar_stock_productos', 'actualizarStockProductos' );
   add_action( 'jugatoys_actualizar_stock_productos_cron', 'cron_events_actualizar_stock_productos' );
@@ -109,12 +112,17 @@ function configuracionInicial(){
 
 // Función que se correrá únicamente una vez al activar el plugin
 function jugatoys_activate(){
-
+  //Sumo un número a numero actualizaciones para que empiece a actualizar los artículos desde el principio 
+  $numeroActualizaciones=get_option("jugatoys_numero_actualizacion");
+  jugatoys_log("Se suma 1 a jugatoys_numero_actualizacion: ". $numeroActualizaciones . " --> ". ($numeroActualizaciones+1));
+  update_option("jugatoys_numero_actualizacion", $numeroActualizaciones+1);
+	//Define jugatoys_actualizandoStockProductos a falso para evitar que se quede a true y no vuelva a actualizar stock
+  update_option("jugatoys_actualizandoStockProductos", 0);
+  jugatoys_log("jugatoys_actualizandoStockProductos se define a 0");
   //Creamos cron que correrá dos veces al día para consultar productos nuevos. Servirá también para hacer la carga inicial
   if (! wp_next_scheduled ( 'jugatoys_nuevos_productos_cron')) {
-    wp_schedule_event( time(), 'twicedaily', 'jugatoys_nuevos_productos_cron' );//
+    wp_schedule_event( time(), 'twicedaily', 'jugatoys_nuevos_productos_cron' );
   }
-
 }
 
 register_activation_hook( __FILE__, 'jugatoys_activate' );

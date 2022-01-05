@@ -20,6 +20,84 @@ Plugin para vincular contra el TPV de JugaToys
 - Notificación de venta
 
 # Descripción
+### Versión: 1.3.9 - Bogdan - 05/01/2022.
+#### Jugatoys.php
+
++ Se cambian todas las referencias de **jugatoys_actualizarStockProductos** para que en vez de definirse a **true/false** pasará a definirse a **1/0**.
+
+> Parece ser que cuando guardas un false en la BBDD deja el parametro en blanco. Ha habído un error que impedía que se actualizarán de forma recursiva los stocks de artículos **function cron_events_actualizar_stock_productos()**.
+
++ De momento queda deshabilitada la funcionalidad que se poniese en espera *function cron_events_actualizar_stock_productos()* en caso de que ya se esté actualizando los stocks de los artículos.
+
+> Ahora en *function cron_events_actualizar_stock_productos()* comprueba el valor de **jugatoys_actualizarStockProductos** de la BBDD antes de actualizar stoks:
+>+ Si el valor de **jugatoys_actualizarStockProductos** es **1** quiere decir que ya se está realizando una actualización de datos por lo que no hará nada y se saltará dicha actualización.
+> + Si el valor de **jugatoys_actualizarStockProductos** es **0** quiere decir que no se está realizando ninguna actualización de Stock, por lo que se llamará a **actualizarStockProductos();** y comenzará a actualizar el stock de los artículos.
+>>Nota: Al llamar a **actualizarStockProductos();** lo primero que se hará será poner **jugatoys_actualizarStockProductos** a **1** para evitar la posibilidad de que empiece una actualización con una en marcha. Al terminar de actualizar el stock de los artículos **jugatoys_actualizarStockProductos** se define a **0**
+
+```php
+  function cron_events_actualizar_stock_productos() {
+    //Confirmamos flag que no se estén actualizando productos actualmente
+    if (!$actualizandoStockProductos) {
+      jugatoys_log("Valor de actualizandoStockProductos " . $actualizandoStockProductos);
+      //wp_schedule_single_event(time(), "jugatoys_actualizar_stock_productos");
+      actualizarStockProductos();
+    }else{
+      jugatoys_log("No ha inicado actualizarStockProductos. jugatoys_actualizandoStockProductos = ".$actualizandoStockProductos." Para funcionar poner a 0 ");
+    }   
+  }
+```
+
++ Para solucionar un error que deshabilitaba la funcionalidad de actualizar el stock de forma recursiva desde hoy al encender el pluguin la variable **jugatoys_actualizarStockProductos** se define a 0 para habilitar la actualización de artículos de forma automatica.
+
++ Para resetear el orden de actualización de stock ahora la variable  **jugatoys_numero_actualizacion** tomará el valor de **(jugatoys_numero_actualizacion + 1)**. Esto puede servir para resetear el orden que tiene el plugin de cara a actualizar los artículos. 
+
+> Ej: jugatoys_numero_actualizacion = 1, al apagar y encender el pluguin jugatoys_numero_actualizacion pasara a ser 2.
+
+```php
+function jugatoys_activate(){
+  //Sumo un número a numero actualizaciones para que empiece a actualizar los artículos desde el principio 
+  $numeroActualizaciones=get_option("jugatoys_numero_actualizacion");
+  jugatoys_log("Se suma 1 a jugatoys_numero_actualizacion: ". $numeroActualizaciones . " --> ". ($numeroActualizaciones+1));
+  update_option("jugatoys_numero_actualizacion", $numeroActualizaciones+1);
+	//Define jugatoys_actualizandoStockProductos a falso para evitar que se quede a true y no vuelva a actualizar stock
+  update_option("jugatoys_actualizandoStockProductos", 0);
+  jugatoys_log("jugatoys_actualizandoStockProductos se define a 0");
+  //Creamos cron que correrá dos veces al día para consultar productos nuevos. Servirá también para hacer la carga inicial
+  if (! wp_next_scheduled ( 'jugatoys_nuevos_productos_cron')) {
+    wp_schedule_event( time(), 'twicedaily', 'jugatoys_nuevos_productos_cron' );
+  }
+}
+
+```
+
+#### Utilidades.php
+
++ Ahora en la función **function actualizarStockSku($aProductId_Sku = array())** antes de actualizar el stock de un artículo comprueba si el stock es menor a 0, en ese caso definirá el stock a 0
+
+> Ej: stock = -1 a la página web llegará como 0.
+
+```php
+//BOGDAN v1.3.9 - Los artículos con un stock negativo los mostrará como Stock = 0.
+if($stock<0){
+    jugatoys_log("Stock menor que 0 en SKU: ". $pData->Sku_Provider. " Stock se pone a 0");
+    wc_update_product_stock($idProducto, 0, 'set');
+}else{
+    wc_update_product_stock($idProducto, $stock, 'set');
+} 
+```
+
+
++ Ya no se dará de alta los artículos sin stock. 
+
+```php
+// BOGDAN v1.3.9 - Ya no se dará de alta los artículos sin stock
+if ($producto->Stock <= 0) {
+    jugatoys_log(["NO STOCK SE IGNORA" , $producto]);
+    $productosPasados++;
+    continue;
+}
+```
+
 ### Versión: 1.3.8 - Bogdan - 18/10/2021.
 + Se cambia el HOOK usado en el Action de notificar venta de woocommerce_new_order --> woocommerce_payment_complete para solucionar un problema que se daba al trabajar con $OrderId.
 
