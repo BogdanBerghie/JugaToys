@@ -98,7 +98,7 @@ function configuracionInicial(){
   // woocommerce_payment_complete_reduce_order_stock
   // https://woocommerce.github.io/code-reference/hooks/hooks.html
   //woocommerce_new_order       woocommerce_payment_complete
-  add_action( 'woocommerce_payment_complete', 'jugatoys_action_pago_realizado', 10, 1 ); 
+  add_action( 'woocommerce_order_status_processing', 'jugatoys_action_pago_realizado', 10, 1 ); 
 
 
   //TODO: Test, quitar despues
