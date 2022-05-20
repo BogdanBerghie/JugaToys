@@ -43,6 +43,10 @@ function configuracionInicial(){
   //Función que se correra X veces al día, según lo que se haya establecido en opciones
   function cron_events_actualizar_stock_productos() {
     //Confirmamos flag que no se estén actualizando productos actualmente
+
+    // TODO: Revisando esta parte, creo que faltaba el código de la siguiente línea. Lo añado comentado.
+    // $actualizandoStockProductos = get_option("jugatoys_actualizandoStockProductos");
+
     if (!$actualizandoStockProductos) {
       jugatoys_log("Valor de actualizandoStockProductos " . $actualizandoStockProductos);
       //wp_schedule_single_event(time(), "jugatoys_actualizar_stock_productos");
@@ -104,9 +108,29 @@ function configuracionInicial(){
   //TODO: Test, quitar despues
   //add_action( 'woocommerce_checkout_order_processed', 'jugatoys_action_pago_realizado', 10, 1 ); 
   
+  // Añadimos cron para notificar posibles ventas sin notificar por pérdidas de conexión 
+  function jugatoys_cron_venta_no_notificada() {
+    // Verificamos que el servidor esté activo
+    jugatoys_log("Comprobando si el servidor está activo");
+    $api = new JugaToysAPI();
+    $ping = $api->ping();
+    jugatoys_log("Comprobando si el servidor está activo. Resultado: ".$ping);
 
+    // Si el servidor está activo, comprobamos si hay ventas sin notificar
+    if($ping){
+      // Confirmamos flag que no se estén notificando ventas actualmente
+      $notificandoVentas = get_option("jugatoys_notificandoVentas");
+      if (!$notificandoVentas) {
+        wp_schedule_single_event(time(), "jugatoys_notificarVentasNoNotificadas_action");
+      }
+    }
+  }
+  add_action( 'jugatoys_notificarVentasNoNotificadas_action', 'jugatoys_notificarVentasNoNotificadas' );
+  add_action( 'jugatoys_cron_venta_no_notificada_action', 'jugatoys_cron_venta_no_notificada' );
 
-
+  if (! wp_next_scheduled ( 'jugatoys_cron_venta_no_notificada_action')) {
+    wp_schedule_event( time(), 'hourly', 'jugatoys_cron_venta_no_notificada_action' );
+  }
 
 }
 

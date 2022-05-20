@@ -28,6 +28,20 @@ class JugaToysAPI{
     // curl_setopt($this->ch, CURLOPT_NOBODY, TRUE); // remove body
   }
 
+  // Función para verificar la conexión del servidor
+  public function ping(){
+    $url = $this->options['url'];
+    curl_setopt($this->ch, CURLOPT_URL, $url);
+    $result = curl_exec($this->ch);
+    $httpcode = curl_getinfo($this->ch, CURLINFO_HTTP_CODE);
+    curl_close($this->ch);
+    if ($httpcode == 200) {
+      return true;
+    }else{
+      return false;
+    }
+  }
+
   public function productInfo($arrayIds = array(), $updated_from = false){
 
     $url = $this->options['url'] . '/productinfo';

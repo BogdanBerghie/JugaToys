@@ -568,14 +568,21 @@ function notificarVenta($orderId)
     jugatoys_log("Realizando notificar venta");
     jugatoys_log($lineas);
 
-    var_dump($lineas);
+    // var_dump($lineas);
     
     $api = new JugaToysAPI();
 
     // $respuesta = $api->ticketInsert($orderId, 'TPV', $lineas);
     $respuesta = $api->ticketInsert($orderId, 'V', $lineas);
 
-    var_dump($respuesta);
+    // Si no hay respuesta correcta, marcamos flag de venta no notificada
+    if (!$respuesta) {
+        update_post_meta($orderId, 'jugatoys_ventaNoNotificada', true);        
+    }
+
+    // var_dump($respuesta);
+    return $respuesta;
+
 }
 
 function jugatoys_log($msg)
@@ -762,4 +769,41 @@ function pruebaAPI()
     // echo '<pre>'; print_r( _get_cron_array() ); echo '</pre>';
 
     wp_die();
+}
+
+// Función lanzada desde cron para verificar si hay ventas que notificar
+function jugatoys_notificarVentasNoNotificadas()
+{
+    // Activamos flag de notificación de ventas
+    update_option("jugatoys_notificandoVentas", true);
+
+    // Obtenemos todas las ventas que no hayan sido notificadas mediante la opcion jugatoys_ventaNoNotificada
+    $orders = get_posts(array(
+        'post_type' => 'shop_order',
+        // 'post_status' => 'wc-processing',
+        'meta_query' => array(
+            array(
+                'key' => 'jugatoys_ventaNoNotificada',
+                'value' => '1',
+                'compare' => '='
+            )
+            ),
+        'posts_per_page' => -1,
+        'orderby' => 'date',
+        'order' => 'ASC',
+    ));
+
+    // Notificamos las ventas
+    foreach ($orders as $order) {
+        $orderId = $order->ID;
+        $order = wc_get_order($orderId);
+        $order->save();
+        if(notificarVenta($orderId)){
+            // Si la notificación se ha realizado correctamente, eliminamos la opcion jugatoys_ventaNoNotificada
+            $order->update_meta_data('jugatoys_ventaNoNotificada', 0);
+        }
+    }
+
+    // Desactivamos flag de notificación de ventas
+    update_option("jugatoys_notificandoVentas", false);
 }
