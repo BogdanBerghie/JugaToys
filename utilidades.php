@@ -574,15 +574,20 @@ function notificarVenta($orderId)
         "CIF" => (!empty($usuario->user_nif)) ? $usuario->user_nif : null,
         "email" => $usuario->user_email,
         "Name" => $usuario->first_name . " " . $usuario->last_name,
-        "Mobile" => $usuario->billing_phone,
-        "Address" => $usuario->billing_address_1,
-        "City" => $usuario->billing_city,
-        "PostalCode" => $usuario->billing_postcode,
-        "Country" => $usuario->billing_country,
+        // "Mobile" => $usuario->billing_phone,
+        // "Address" => $usuario->billing_address_1,
+        // "City" => $usuario->billing_city,
+        // "PostalCode" => $usuario->billing_postcode,
+        // "Country" => $usuario->billing_country,
+        "Mobile" => null,
+        "Address" => null,
+        "City" => null,
+        "PostalCode" => null,
+        "Country" => null,
         "Phone" => null
     );
     // Datos de cliente
-    $aDatosCliente = (object) array(
+    $aDatosBilling = (object) array(
         "CIF" => (!empty($order->get_billing_nif())) ? $order->get_billing_nif() : null,
         "email" => $order->get_billing_email(),
         "Name" => $order->get_billing_first_name() . " " . $order->get_billing_last_name(),
@@ -593,17 +598,39 @@ function notificarVenta($orderId)
         "Country" => $order->get_billing_country(),
         "Phone" => null
     );
-    // Cruzamos dato dando prioridad al de cliente (parte de wc)
+    $aDatosShipping = (object) array(
+        "CIF" => (!empty($order->get_shipping_nif())) ? $order->get_shipping_nif() : null,
+        "email" => $order->get_shipping_email(),
+        "Name" => $order->get_shipping_first_name() . " " . $order->get_shipping_last_name(),
+        "Mobile" => $order->get_shipping_phone(),
+        "Address" => $order->get_shipping_address_1() . " - " . $order->get_shipping_address_2(),
+        "City" => $order->get_shipping_city(),
+        "PostalCode" => $order->get_shipping_postcode(),
+        "Country" => $order->get_shipping_country(),
+        "Phone" => null
+    );
+    // Cruzamos dato dando prioridad al de billing (parte de wc)
     $aDatosFinales = (object) array(
-        "CIF" => (!empty($aDatosCliente->CIF) ? $aDatosCliente->CIF : $aDatosUsuario->CIF),
-        "email" => (!empty($aDatosCliente->email) ? $aDatosCliente->email : $aDatosUsuario->email),
-        "Name" => (!empty($aDatosCliente->Name) ? $aDatosCliente->Name : $aDatosUsuario->Name),
-        "Mobile" => (!empty($aDatosCliente->Mobile) ? $aDatosCliente->Mobile : $aDatosUsuario->Mobile),
-        "Address" => (!empty($aDatosCliente->Address) ? $aDatosCliente->Address : $aDatosUsuario->Address),
-        "City" => (!empty($aDatosCliente->City) ? $aDatosCliente->City : $aDatosUsuario->City),
-        "PostalCode" => (!empty($aDatosCliente->PostalCode) ? $aDatosCliente->PostalCode : $aDatosUsuario->PostalCode),
-        "Country" => (!empty($aDatosCliente->Country) ? $aDatosCliente->Country : $aDatosUsuario->Country),
-        "Phone" => (!empty($aDatosCliente->Phone) ? $aDatosCliente->Phone : $aDatosUsuario->Phone),
+        "CIF" => (!empty($aDatosBilling->CIF) ? $aDatosBilling->CIF : $aDatosUsuario->CIF),
+        "email" => (!empty($aDatosBilling->email) ? $aDatosBilling->email : $aDatosUsuario->email),
+        "Name" => (!empty($aDatosBilling->Name) ? $aDatosBilling->Name : $aDatosUsuario->Name),
+        "Mobile" => (!empty($aDatosBilling->Mobile) ? $aDatosBilling->Mobile : $aDatosUsuario->Mobile),
+        "Address" => (!empty($aDatosBilling->Address) ? $aDatosBilling->Address : $aDatosUsuario->Address),
+        "City" => (!empty($aDatosBilling->City) ? $aDatosBilling->City : $aDatosUsuario->City),
+        "PostalCode" => (!empty($aDatosBilling->PostalCode) ? $aDatosBilling->PostalCode : $aDatosUsuario->PostalCode),
+        "Country" => (!empty($aDatosBilling->Country) ? $aDatosBilling->Country : $aDatosUsuario->Country),
+        "Phone" => (!empty($aDatosBilling->Phone) ? $aDatosBilling->Phone : $aDatosUsuario->Phone),
+    );
+    $aDatosFinales = (object) array(
+        "CIF" => (!empty($aDatosFinales->CIF) ? $aDatosFinales->CIF : $aDatosShipping->CIF),
+        "email" => (!empty($aDatosFinales->email) ? $aDatosFinales->email : $aDatosShipping->email),
+        "Name" => (!empty($aDatosFinales->Name) ? $aDatosFinales->Name : $aDatosShipping->Name),
+        "Mobile" => (!empty($aDatosFinales->Mobile) ? $aDatosFinales->Mobile : $aDatosShipping->Mobile),
+        "Address" => (!empty($aDatosFinales->Address) ? $aDatosFinales->Address : $aDatosShipping->Address),
+        "City" => (!empty($aDatosFinales->City) ? $aDatosFinales->City : $aDatosShipping->City),
+        "PostalCode" => (!empty($aDatosFinales->PostalCode) ? $aDatosFinales->PostalCode : $aDatosShipping->PostalCode),
+        "Country" => (!empty($aDatosFinales->Country) ? $aDatosFinales->Country : $aDatosShipping->Country),
+        "Phone" => (!empty($aDatosFinales->Phone) ? $aDatosFinales->Phone : $aDatosShipping->Phone),
     );
 
 
