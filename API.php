@@ -80,7 +80,7 @@ class JugaToysAPI{
     
   }
 
-  public function ticketInsert($orderId, $typeCharge, $lines = array()){
+  public function ticketInsert($orderId, $typeCharge, $lines = array(), $client = array()){
 
     $url = $this->options['url'] . '/ticketinsert';
     $data = array(
@@ -95,6 +95,10 @@ class JugaToysAPI{
       $data['Ticket']['Ticket_Lines'] = $lines;
     }
 
+    if(is_array($client) && !empty($client)){
+      $data['Ticket']['Client'] = $client;
+    }
+    
     return $this->post($url, $data);
     
   }

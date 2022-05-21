@@ -546,6 +546,7 @@ function notificarVenta($orderId)
     $lineas = array();
     $order = wc_get_order($orderId);
 
+    // Obtenemos líneas
     foreach ($order->get_items() as $item_id => $item) {
         $producto = $item->get_product();
         $pvp_string = $producto->get_price();
@@ -563,6 +564,49 @@ function notificarVenta($orderId)
         );
     }
 
+    // Obtenemos cliente
+    $idUsuario = $order->get_customer_id();
+    $usuario = get_user_by('id', $idUsuario);
+
+    // TODO: Verificar que se obtienen los datos correctamente
+    // Datos de usuario
+    $aDatosUsuario = (object) array(
+        "CIF" => (!empty($usuario->user_nif)) ? $usuario->user_nif : null,
+        "email" => $usuario->user_email,
+        "Name" => $usuario->first_name . " " . $usuario->last_name,
+        "Mobile" => $usuario->billing_phone,
+        "Address" => $usuario->billing_address_1,
+        "City" => $usuario->billing_city,
+        "PostalCode" => $usuario->billing_postcode,
+        "Country" => $usuario->billing_country,
+        "Phone" => null
+    );
+    // Datos de cliente
+    $aDatosCliente = (object) array(
+        "CIF" => (!empty($order->get_billing_nif())) ? $order->get_billing_nif() : null,
+        "email" => $order->get_billing_email(),
+        "Name" => $order->get_billing_first_name() . " " . $order->get_billing_last_name(),
+        "Mobile" => $order->get_billing_phone(),
+        "Address" => $order->get_billing_address_1() . " - " . $order->get_billing_address_2(),
+        "City" => $order->get_billing_city(),
+        "PostalCode" => $order->get_billing_postcode(),
+        "Country" => $order->get_billing_country(),
+        "Phone" => null
+    );
+    // Cruzamos dato dando prioridad al de cliente (parte de wc)
+    $aDatosFinales = (object) array(
+        "CIF" => (!empty($aDatosCliente->CIF) ? $aDatosCliente->CIF : $aDatosUsuario->CIF),
+        "email" => (!empty($aDatosCliente->email) ? $aDatosCliente->email : $aDatosUsuario->email),
+        "Name" => (!empty($aDatosCliente->Name) ? $aDatosCliente->Name : $aDatosUsuario->Name),
+        "Mobile" => (!empty($aDatosCliente->Mobile) ? $aDatosCliente->Mobile : $aDatosUsuario->Mobile),
+        "Address" => (!empty($aDatosCliente->Address) ? $aDatosCliente->Address : $aDatosUsuario->Address),
+        "City" => (!empty($aDatosCliente->City) ? $aDatosCliente->City : $aDatosUsuario->City),
+        "PostalCode" => (!empty($aDatosCliente->PostalCode) ? $aDatosCliente->PostalCode : $aDatosUsuario->PostalCode),
+        "Country" => (!empty($aDatosCliente->Country) ? $aDatosCliente->Country : $aDatosUsuario->Country),
+        "Phone" => (!empty($aDatosCliente->Phone) ? $aDatosCliente->Phone : $aDatosUsuario->Phone),
+    );
+
+
     //TEST TODO
     jugatoys_log("----------------------------------------------------");
     jugatoys_log("Realizando notificar venta");
@@ -573,7 +617,7 @@ function notificarVenta($orderId)
     $api = new JugaToysAPI();
 
     // $respuesta = $api->ticketInsert($orderId, 'TPV', $lineas);
-    $respuesta = $api->ticketInsert($orderId, 'V', $lineas);
+    $respuesta = $api->ticketInsert($orderId, 'V', $lineas, $aDatosFinales);
 
     // Si no hay respuesta correcta, marcamos flag de venta no notificada
     if (!$respuesta) {
