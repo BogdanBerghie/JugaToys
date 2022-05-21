@@ -140,6 +140,14 @@ class JugaToysSettingsPage
             'jugatoys-ajustes', 
             'ajuste_sincronizacion_jugatoys'
         );
+
+        add_settings_field(
+            'sincronizar_productos', 
+            "", 
+            array( $this, 'sincronizar_productos_callback' ), 
+            'jugatoys-ajustes', 
+            'ajuste_sincronizacion_jugatoys'
+        );
       
     }
 
@@ -249,6 +257,13 @@ class JugaToysSettingsPage
         printf(
             '<input type="text" id="sincronizaciones_diarias_numero_productos" name="jugatoys_settings[sincronizaciones_diarias_numero_productos]" value="%d" />',
             isset( $this->options['sincronizaciones_diarias_numero_productos'] ) ? esc_attr( $this->options['sincronizaciones_diarias_numero_productos']) : ''
+        );
+    }
+
+    public function sincronizar_productos_callback()
+    {
+        printf(
+            '<button id="sincronizar_productos" class="button button-success">Sincronizar productos</button>'
         );
     }
 

@@ -131,6 +131,31 @@ function configuracionInicial(){
   if (! wp_next_scheduled ( 'jugatoys_cron_venta_no_notificada_action')) {
     wp_schedule_event( time(), 'hourly', 'jugatoys_cron_venta_no_notificada_action' );
   }
+  
+
+  // Añadimos callback para botón de sincronizar productos
+  function jugatoys_sincronizarProductos() { 
+    // Verificamos nonce
+    if(wp_verify_nonce( $_POST['nonce'], 'jugatoys_sincronizarProductos' )){
+      comprobarTodosProductos(); 
+    }else{
+      http_response_code(400);die();
+    }
+  };
+  add_action('wp_ajax_jugatoys_sincronizarProductos', 'jugatoys_sincronizarProductos');
+
+  // Añadimos script para gestionar funcionalidad
+  function jugatoys_admin_scripts($hook) {
+    // Solo si es admin   
+    if($hook == "settings_page_jugatoys-ajustes"){
+      wp_enqueue_script( 'jugatoys-admin', plugins_url(). '/jugatoys/js/jugatoys-admin.js', array(), filemtime( __DIR__. "/js/jugatoys-admin.js" ), true );
+      wp_localize_script('jugatoys-admin', 'ajax_var', array(
+          'url' => admin_url('admin-ajax.php'),
+          'nonce' => wp_create_nonce('jugatoys_sincronizarProductos')
+      ));
+    }
+  }
+  add_action( 'admin_enqueue_scripts', 'jugatoys_admin_scripts' );
 
 }
 
@@ -156,5 +181,3 @@ function jugatoys_deactivate(){
   desactivar_cron("jugatoys_nuevos_productos_cron");
 }
 register_deactivation_hook( __FILE__, 'jugatoys_deactivate' );
-
-?>
