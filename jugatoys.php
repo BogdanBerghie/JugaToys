@@ -157,6 +157,29 @@ function configuracionInicial(){
   }
   add_action( 'admin_enqueue_scripts', 'jugatoys_admin_scripts' );
 
+  // Añadimos check a los productos para controlar la sincronización del precio de los productos de JugaToys
+  add_action('woocommerce_product_options_general_product_data', 'woocommerce_product_custom_fields');
+  // Following code Saves  WooCommerce Product Custom Fields
+  add_action('woocommerce_process_product_meta', 'woocommerce_product_custom_fields_save');
+
+  function woocommerce_product_custom_fields()
+  {
+      echo '<div class=" product_custom_field ">';
+      woocommerce_wp_checkbox( 
+        array( 
+          'id'            => 'jugatoys_sincronizarPrecio', 
+          'label'       => __('Jugatoys - Sincronizar precio:', 'jugatoys'),
+          )
+        );
+      echo '</div>';
+  }
+
+  function woocommerce_product_custom_fields_save($post_id)
+  {
+      $jugatoysSincronizarPrecio = $_POST['jugatoys_sincronizarPrecio'];
+      update_post_meta($post_id, 'jugatoys_sincronizarPrecio', $jugatoysSincronizarPrecio);
+  }
+
 }
 
 // Función que se correrá únicamente una vez al activar el plugin

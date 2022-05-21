@@ -130,14 +130,19 @@ function actualizarStockSku($aProductId_Sku = array())
                         //BOGDAN - v1.2.6
 
                         wc_update_product_stock($idProducto, $stock, 'set');
-                        update_post_meta($idProducto, '_price', $PVP);
+
+                        // Verificamos si tenemos que sincronizar precio
+                        $sincronizarPrecio = get_post_meta($idProducto, 'jugatoys_sincronizarPrecio', true);
+                        if(!empty($sincronizarPrecio)){
+                            update_post_meta($idProducto, '_price', $PVP);
+                        }
                         //BOGDAN v1.3.6
                         jugatoys_log([
                             "SKU de articulo seleccionado: ". $pData->Sku_Provider,
                             //BOGDAN v1.3.6 - A peticion de Ander. No quiere que se actualice el nombre.
                             //"Descripcion actualizado: ". $Product_Name,
                             //BOGDAN - v1.2.6
-                            "precio actualizado: ". $PVP,
+                            "precio actualizado ". $sincronizarPrecio . ": ". $PVP,
                             "Stock actualizado: ". $stock
                                 ]);
                         //BOGDAN v1.3.6
@@ -463,6 +468,9 @@ function altaProducto($producto)
         $numeroActualizacion = get_option('jugatoys_numero_actualizacion');
         update_post_meta($new_simple_product->get_id(), '_jugatoys_numero_actualizacion', $numeroActualizacion);
 
+        // Opción de sincronización de precio por defecto activa
+        update_post_meta($new_simple_product->get_id(), 'jugatoys_sincronizarPrecio', "yes");
+
         jugatoys_log("altaProducto - OK: " . $new_simple_product->get_id());
 
         return $new_simple_product->get_id();
@@ -647,6 +655,24 @@ function jugatoys_configuracion_default()
         $bGuardar = true;
     }
     if ($bGuardar) {
+        update_option("jugatoys_settings", $opciones);
+    }
+    // Verificamos si se ha establecido por defecto a true la sincronización del precio, que por lógica es necesario. Únicamente correrá una vez, o cuando se borre la opción
+    if(empty($opciones['jugatoys_establecidoSincronizacionStockDefault'])){
+
+        // Establecemos la opción a true en todos los productos
+        $args = array(
+            'post_type' => 'product',
+            'posts_per_page' => -1,
+            'fields' => 'ids',
+            "numberposts" => -1
+        );
+        $productos = get_posts($args);
+        foreach ($productos as $producto) {
+            update_post_meta($producto, 'jugatoys_sincronizarPrecio', "yes");
+        }
+
+        $opciones['jugatoys_establecidoSincronizacionStockDefault'] = true;
         update_option("jugatoys_settings", $opciones);
     }
 }
