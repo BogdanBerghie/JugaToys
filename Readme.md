@@ -20,6 +20,18 @@ Plugin para vincular contra el TPV de JugaToys
 - Notificación de venta
 
 # Descripción
+### V. 1.4.0 - Alain - 25/05/2022
++ Ahora cuando se pierda y se recupere la conexión entre página y TPV se hará una comprobación para actualizar todas las ventas que se hayan realizdo en el *apagón*
+
++ En las llamadas al TPV ahora se incluye la fecha del momento en el que se realiza la llamada para que el tpv responda con todos los artículos que hayan sufrido alguna modificación (ej.: suma o resta de stock).
+
++ Ahora con la notificación de una compra se pasará también los datos del cliente para que en caso de que se hayan facilitado todos los campos necesarios se dará de alta el cliente en en TPV. 
+> En caso de que el cliente ya exista en el TPV no se dará de alta.
+
++ Se añade un check en todos los artículos para especificar si se debe actualizar o no el precio del artículo.
+
++ Se añade un nuevo botón para desencadenar la funcinalidad de buscar nuevos artículos en la pantalla de configuración del pluguin.
+
 ### Versión: 1.3.9 - Bogdan - 05/01/2022.
 #### Jugatoys.php
 
