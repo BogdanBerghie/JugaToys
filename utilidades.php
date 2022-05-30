@@ -298,6 +298,10 @@ function actualizarStockProductos()
 
     //Si hay productos para actualizar, tratamos
     if (!empty($productos)) {
+        //BOGDAN V.1.4.1 - Antes de actualizar el stock se hará una comprobación para dar de alta un artículo que en un primer momento se obvio por falta de stock
+        comprobarTodosProductos();
+        //BOGDAN V.1.4.1
+
         $aIdProdcutos = array();
 
         foreach ($productos as $key => $producto) {

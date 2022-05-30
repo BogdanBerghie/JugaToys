@@ -20,6 +20,18 @@ Plugin para vincular contra el TPV de JugaToys
 - Notificación de venta
 
 # Descripción
+### V. 1.4.1 - Bogdan - 30/05/2022
+Ahora al actualizar el stock hace una comprobacion para dar de alta artículos que en un principio hayan sido discriminados por no tener stock.
+
+```php 
+function actualizarStockProductos()
+{
+  ...
+  //BOGDAN V.1.4.1 - Antes de actualizar el stock se hará una comprobación para dar de alta un artículo que en un primer momento se obvio por falta de stock
+  comprobarTodosProductos();
+  //BOGDAN V.1.4.1
+```
+
 ### V. 1.4.0 - Alain - 25/05/2022
 + Ahora cuando se pierda y se recupere la conexión entre página y TPV se hará una comprobación para actualizar todas las ventas que se hayan realizdo en el *apagón*
 
