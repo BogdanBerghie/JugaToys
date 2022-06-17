@@ -599,8 +599,9 @@ function notificarVenta($orderId)
         "Phone" => null
     );
     // Datos de cliente
+    $_billing_nif = get_post_meta($orderId, '_billing_nif', true);
     $aDatosBilling = (object) array(
-        "CIF" => (!empty($order->get_billing_nif())) ? $order->get_billing_nif() : null,
+        "CIF" => (!empty($_billing_nif)) ? $_billing_nif : null,
         "email" => $order->get_billing_email(),
         "Name" => $order->get_billing_first_name() . " " . $order->get_billing_last_name(),
         "Mobile" => $order->get_billing_phone(),
@@ -610,9 +611,11 @@ function notificarVenta($orderId)
         "Country" => $order->get_billing_country(),
         "Phone" => null
     );
+    $_shipping_nif = get_post_meta($orderId, '_shipping_nif', true);
+    $_shipping_email = get_post_meta($orderId, '_shipping_email', true);
     $aDatosShipping = (object) array(
-        "CIF" => (!empty($order->get_shipping_nif())) ? $order->get_shipping_nif() : null,
-        "email" => $order->get_shipping_email(),
+        "CIF" => (!empty($_shipping_nif)) ? $_shipping_nif : null,
+        "email" => (!empty($_shipping_email)) ? $_shipping_email : null,
         "Name" => $order->get_shipping_first_name() . " " . $order->get_shipping_last_name(),
         "Mobile" => $order->get_shipping_phone(),
         "Address" => $order->get_shipping_address_1() . " - " . $order->get_shipping_address_2(),
@@ -644,6 +647,13 @@ function notificarVenta($orderId)
         "Country" => (!empty($aDatosFinales->Country) ? $aDatosFinales->Country : $aDatosShipping->Country),
         "Phone" => (!empty($aDatosFinales->Phone) ? $aDatosFinales->Phone : $aDatosShipping->Phone),
     );
+
+    // Opcional - Quitamos campos null
+    foreach ($aDatosFinales as $key => $value) {
+        if (is_null($value)) {
+            unset($aDatosFinales->$key);
+        }
+    }
 
 
     //TEST TODO
@@ -737,8 +747,8 @@ function pruebaAPI()
     ini_set('display_startup_errors', '1');
     error_reporting(E_ALL);
     echo "<pre>";
-
-    notificarVenta(42610);//42219
+    // notificarVenta(42610);//42219
+    notificarVenta(43);
 
     wp_die();
 

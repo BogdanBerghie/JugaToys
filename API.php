@@ -95,7 +95,7 @@ class JugaToysAPI{
       $data['Ticket']['Ticket_Lines'] = $lines;
     }
 
-    if(is_array($client) && !empty($client)){
+    if(!empty($client)){
       $data['Ticket']['Client'] = $client;
     }
     
@@ -142,7 +142,9 @@ class JugaToysAPI{
     curl_close($this->ch);
 
     jugatoys_log(["httpCode", $httpCode]);
-    jugatoys_log(["Result", json_decode($respuesta)->Result]);
+    if($respuesta){
+      jugatoys_log(["Result", json_decode($respuesta)->Result]);
+    }
     jugatoys_log("-------------------------------");
 
     if($httpCode < 400)
