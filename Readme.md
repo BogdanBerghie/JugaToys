@@ -21,6 +21,11 @@ Plugin para vincular contra el TPV de JugaToys
 
 # Descripción
 ### V. 1.4.2 - Alain - 17/06/2022
++ Quitamos discriminación de stock al dar de alta productos
++ Cambiamos llamada a la API de la función actualizarStockSku. Llamaba productInfo y ahora llama a stockPrice
+
+# Descripción
+### V. 1.4.2 - Alain - 17/06/2022
 + Actualizamos funciones para obtener datos de cliente.
 + Fix al añadir datos de cliente al notificar venta
 + Quitamos campos null de los datos de cliente al notificar venta

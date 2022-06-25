@@ -44,8 +44,7 @@ function configuracionInicial(){
   function cron_events_actualizar_stock_productos() {
     //Confirmamos flag que no se estén actualizando productos actualmente
 
-    // TODO: Revisando esta parte, creo que faltaba el código de la siguiente línea. Lo añado comentado.
-    // $actualizandoStockProductos = get_option("jugatoys_actualizandoStockProductos");
+    $actualizandoStockProductos = get_option("jugatoys_actualizandoStockProductos");
 
     if (!$actualizandoStockProductos) {
       jugatoys_log("Valor de actualizandoStockProductos " . $actualizandoStockProductos);

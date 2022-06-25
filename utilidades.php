@@ -83,7 +83,9 @@ function actualizarStockSku($aProductId_Sku = array())
 
     //Consultamos contra la API
     $skus = array_values($aProductId_Sku);
-    $productInfo = $api->productInfo($skus);
+
+    // v1.4.2 - Cambiamos llamada de productInfo a stockPrice
+    $productInfo = $api->stockPrice($skus);
 
     if (empty($productInfo)) {
         return false;
@@ -129,7 +131,7 @@ function actualizarStockSku($aProductId_Sku = array())
 //                        ]);
                         //BOGDAN - v1.2.6
 
-                        wc_update_product_stock($idProducto, $stock, 'set');
+                        // wc_update_product_stock($idProducto, $stock, 'set');
 
                         // Verificamos si tenemos que sincronizar precio
                         $sincronizarPrecio = get_post_meta($idProducto, 'jugatoys_sincronizarPrecio', true);
@@ -222,11 +224,11 @@ function comprobarTodosProductos()
                 $producto->Sku = $producto->Sku_Provider;
                 $idProducto = existeSKU($producto->Sku);
                 // BOGDAN v1.3.9 - Ya no se dará de alta los artículos sin stock
-                if ($producto->Stock <= 0) {
-                    jugatoys_log(["NO STOCK SE IGNORA" , $producto]);
-                    $productosPasados++;
-                    continue;
-                }
+                // if ($producto->Stock <= 0) {
+                //     jugatoys_log(["NO STOCK SE IGNORA" , $producto]);
+                //     $productosPasados++;
+                //     continue;
+                // }
                 
                 if (!$idProducto) {
                     jugatoys_log("ERROR - SKU no localizado: " . $producto->Sku);
@@ -736,7 +738,7 @@ function conseguirUnSoloEAN($EANs)
 }
 
 // Ajax de prueba
-// https://jugueteriamets.serinforhosting.com/wp-admin/admin-ajax.php?action=pruebaAPI
+// https://ametsjuguetesydisfraces.es/wp-admin/admin-ajax.php?action=pruebaAPI
 add_action('wp_ajax_pruebaAPI', 'pruebaAPI');
 // add_action( 'wp_ajax_nopriv_pruebaAPI', 'pruebaAPI' );
 
@@ -748,7 +750,7 @@ function pruebaAPI()
     error_reporting(E_ALL);
     echo "<pre>";
     // notificarVenta(42610);//42219
-    notificarVenta(43);
+    notificarVenta(45892);
 
     wp_die();
 
