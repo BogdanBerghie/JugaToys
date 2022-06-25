@@ -20,8 +20,8 @@ Plugin para vincular contra el TPV de JugaToys
 - Notificación de venta
 
 # Descripción
-### V. 1.4.2 - Alain - 17/06/2022
-+ Quitamos discriminación de stock al dar de alta productos
+### V. 1.4.3 - Alain - 17/06/2022
++ Quitamos discriminación de stock al dar de alta productos. Cambiamos llamada a la API de la función actualizarStockSku. Llamaba productInfo y ahora llama a stockPrice
 + Cambiamos llamada a la API de la función actualizarStockSku. Llamaba productInfo y ahora llama a stockPrice
 
 # Descripción
