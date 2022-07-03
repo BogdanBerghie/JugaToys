@@ -83,15 +83,20 @@ function actualizarStockSku($aProductId_Sku = array())
 
     //Consultamos contra la API
     $skus = array_values($aProductId_Sku);
+    
+    $numeroActualizacion = get_option('jugatoys_numero_actualizacion');
 
     // v1.4.2 - Cambiamos llamada de productInfo a stockPrice
     $productInfo = $api->stockPrice($skus);
 
     if (empty($productInfo)) {
+        // Si no hay productInfo, es que la API no ha dado una respuesta correcta.
+        // A fin de evitar que se quede en bucle consultando el stock del mismo producto, marcamos numero_actualizacion para que no se vuelva a consultar
+        foreach ($aProductId_Sku as $idProducto => $sku) {
+            update_post_meta($idProducto, '_jugatoys_numero_actualizacion', $numeroActualizacion);
+        }
         return false;
     }
-
-    $numeroActualizacion = get_option('jugatoys_numero_actualizacion');
 
     //Verificamos si la respuesta es correcta
     if ($productInfo->Result == "OK") {
@@ -116,19 +121,28 @@ function actualizarStockSku($aProductId_Sku = array())
                         //BOGDAN v1.3.4 - A peticion del cliente se configura que tambien actualice el prescio y el titulo de articulos al interactuar con ellos.
                         $PVP = $pData->PVP;
                         //BOGDAN v1.3.9 - Los artículos con un stock negativo los mostrará como Stock = 0.
+                        $product = wc_get_product($idProducto);
                         if($stock<0){
                             jugatoys_log("Stock menor que 0 en SKU: ". $pData->Sku_Provider. " Stock se pone a 0");
                             wc_update_product_stock($idProducto, 0, 'set');
+                            
+                            // V. 1.4.4 - Si el stock de un producto es <=0 establecemos como borrador
+                            $product->set_status('draft');
+                            $product->save();
                         }else{
                             wc_update_product_stock($idProducto, $stock, 'set');
+
+                            // V. 1.4.4 - Si el stock de un producto es >0 quitamos borrador
+                            $product->set_status('publish');
+                            $product->save();
                         } 
                         //BOGDAN v1.3.6 - A peticion de Ander. No quiere que se actualice el nombre.
-//                        $Product_Name = $pData->Product_Name;
-//                        $productIdBySKU = wc_get_product_id_by_sku($pData->Sku_Provider);
-//                        wp_update_post([
-//                            'ID' => $productIdBySKU,
-//                            'post_title' => $Product_Name,
-//                        ]);
+                        // $Product_Name = $pData->Product_Name;
+                        // $productIdBySKU = wc_get_product_id_by_sku($pData->Sku_Provider);
+                        // wp_update_post([
+                            // 'ID' => $productIdBySKU,
+                            // 'post_title' => $Product_Name,
+                        // ]);
                         //BOGDAN - v1.2.6
 
                         // wc_update_product_stock($idProducto, $stock, 'set');
@@ -167,7 +181,6 @@ function actualizarStockSku($aProductId_Sku = array())
         // foreach ($aProductId_Sku as $postId => $sku) {
         //   update_post_meta($postId, '_jugatoys_numero_actualizacion', $numeroActualizacion );
         // }
-
         //En caso de respuesta incorrecta, marcamos consultamos indifivucalmente producto
         //SI tiene más de un elemento, puede que solo esté fallando uno de los elementos, por tanto consultamos todos.
         if (count($aProductId_Sku) > 1) {
@@ -197,9 +210,6 @@ function comprobarTodosProductos()
 
     $api = new JugaToysAPI();
     $productInfo = $api->productInfo(array(), $fechaUltimaComprobacionProductos);
-
-    var_dump($fechaUltimaComprobacionProductos);
-    var_dump($productInfo->Data);
 
     $productosInsertados = 0;
     $productosPasados = 0;
@@ -237,8 +247,9 @@ function comprobarTodosProductos()
                         jugatoys_log($producto);
                     }
                 } else {
-                    jugatoys_log("ENCONTRADO - " . $producto->Sku. " CON EAN: ". $producto->EAN);
-                    update_post_meta($idProducto, '_sku_jugatoys', $producto->Sku_Provider);
+                    // V. 1.4.4 - Desactivamos actualización de stock. Solo actualizará desde stockPrice
+                    // jugatoys_log("ENCONTRADO - " . $producto->Sku. " CON EAN: ". $producto->EAN);
+                    // update_post_meta($idProducto, '_sku_jugatoys', $producto->Sku_Provider);
                     
                     $EAN_tratado = conseguirUnSoloEAN($producto->EAN);
                     update_post_meta($idProducto, '_alg_ean', $EAN_tratado);
@@ -301,7 +312,7 @@ function actualizarStockProductos()
     //Si hay productos para actualizar, tratamos
     if (!empty($productos)) {
         //BOGDAN V.1.4.1 - Antes de actualizar el stock se hará una comprobación para dar de alta un artículo que en un primer momento se obvio por falta de stock
-        comprobarTodosProductos();
+        // comprobarTodosProductos();
         //BOGDAN V.1.4.1
 
         $aIdProdcutos = array();
@@ -689,10 +700,11 @@ function jugatoys_configuracion_default()
 {
     $bGuardar = false;
     $opciones = get_option('jugatoys_settings');
-    if (empty($opciones['sincronizaciones_diarias'])) {
-        $opciones['sincronizaciones_diarias'] = 24;
-        $bGuardar = true;
-    }
+    // Desactivamos opción para establecer número de actualizaciones de stock diarias. Será cada 5 minutos
+    // if (empty($opciones['sincronizaciones_diarias'])) {
+    //     $opciones['sincronizaciones_diarias'] = 60/5 * 24; // 5 minutos
+    //     $bGuardar = true;
+    // }
     if (empty($opciones['sincronizaciones_diarias_numero_productos'])) {
         $opciones['sincronizaciones_diarias_numero_productos'] = 20;
         $bGuardar = true;
