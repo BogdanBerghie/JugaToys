@@ -194,7 +194,8 @@ function jugatoys_action_comprobar_stock($order) {
     $stock = $product->get_stock_quantity();
     // Si el stock es <=0 establecemos como borrador
     if ($stock <= 0) {
-      $product->set_status('draft');
+      // V. 1.4.4 - Fix - No pasamos stock <= 0 a borradores
+      // $product->set_status('draft');
       $product->save();
     }
   }
@@ -208,7 +209,7 @@ function jugatoys_action_product_query($query){
     array(
       'key'       => '_stock',
       'value'     => 0,
-      'compare'   => '>=',
+      'compare'   => '>',
       'type'      => 'numeric'  
     ),
   );

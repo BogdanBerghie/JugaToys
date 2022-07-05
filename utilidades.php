@@ -122,13 +122,14 @@ function actualizarStockSku($aProductId_Sku = array())
                         $PVP = $pData->PVP;
                         //BOGDAN v1.3.9 - Los artículos con un stock negativo los mostrará como Stock = 0.
                         $product = wc_get_product($idProducto);
-                        if($stock<0){
+                        if($stock<=0){
                             jugatoys_log("Stock menor que 0 en SKU: ". $pData->Sku_Provider. " Stock se pone a 0");
                             wc_update_product_stock($idProducto, 0, 'set');
                             
                             // V. 1.4.4 - Si el stock de un producto es <=0 establecemos como borrador
-                            $product->set_status('draft');
-                            $product->save();
+                            // V. 1.4.4 - Fix - No pasamos stock <= 0 a borradores
+                            // $product->set_status('draft');
+                            // $product->save();
                         }else{
                             wc_update_product_stock($idProducto, $stock, 'set');
 
