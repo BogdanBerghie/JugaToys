@@ -694,7 +694,10 @@ function notificarVenta($orderId)
 
 function jugatoys_log($msg)
 {
-    error_log("\r\n" . Date("Y-m-d H:i:s") . " - " . print_r($msg, true), 3, __DIR__ . "/errors.log");
+    $errorPath = ini_get('error_log');
+    $errorPath = str_replace('\\', '/', $errorPath);
+    $log_file = str_replace('php_error.log', 'jugatoys.log', $errorPath);
+    error_log("\r\n" . Date("Y-m-d H:i:s") . " - " . print_r($msg, true), 3, $log_file);
 }
 
 function jugatoys_configuracion_default()
@@ -762,6 +765,9 @@ function pruebaAPI()
     ini_set('display_startup_errors', '1');
     error_reporting(E_ALL);
     echo "<pre>";
+
+    jugatoys_log("prueba");
+    wp_die();
     // notificarVenta(42610);//42219
     notificarVenta(45892);
 
