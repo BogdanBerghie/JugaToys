@@ -84,19 +84,8 @@ function actualizarStockSku($aProductId_Sku = array())
     //Consultamos contra la API
     $skus = array_values($aProductId_Sku);
     
-    $numeroActualizacion = get_option('jugatoys_numero_actualizacion');
-
     // v1.4.2 - Cambiamos llamada de productInfo a stockPrice
     $productInfo = $api->stockPrice($skus);
-
-    if (empty($productInfo)) {
-        // Si no hay productInfo, es que la API no ha dado una respuesta correcta.
-        // A fin de evitar que se quede en bucle consultando el stock del mismo producto, marcamos numero_actualizacion para que no se vuelva a consultar
-        foreach ($aProductId_Sku as $idProducto => $sku) {
-            update_post_meta($idProducto, '_jugatoys_numero_actualizacion', $numeroActualizacion);
-        }
-        return false;
-    }
 
     //Verificamos si la respuesta es correcta
     if ($productInfo->Result == "OK") {
@@ -124,14 +113,14 @@ function actualizarStockSku($aProductId_Sku = array())
                         $product = wc_get_product($idProducto);
                         if($stock<=0){
                             jugatoys_log("Stock menor que 0 en SKU: ". $pData->Sku_Provider. " Stock se pone a 0");
-                            wc_update_product_stock($idProducto, 0, 'set');
+                            wc_update_product_stock($idProducto, 0);
                             
                             // V. 1.4.4 - Si el stock de un producto es <=0 establecemos como borrador
                             // V. 1.4.4 - Fix - No pasamos stock <= 0 a borradores
                             // $product->set_status('draft');
                             // $product->save();
                         }else{
-                            wc_update_product_stock($idProducto, $stock, 'set');
+                            wc_update_product_stock($idProducto, $stock);
 
                             // V. 1.4.4 - Si el stock de un producto es >0 quitamos borrador
                             $product->set_status('publish');
@@ -167,32 +156,14 @@ function actualizarStockSku($aProductId_Sku = array())
                     }
                 }
             }
-
-            foreach ($aProductId_Sku as $idProducto => $sku) {
-                update_post_meta($idProducto, '_jugatoys_numero_actualizacion', $numeroActualizacion);
-            }
-        } else {
-            //Si llega data pero llega vacío, establecemos los productos como actualizados
-            foreach ($aProductId_Sku as $postId => $sku) {
-                update_post_meta($postId, '_jugatoys_numero_actualizacion', $numeroActualizacion);
-            }
         }
     } else {
-
-        // foreach ($aProductId_Sku as $postId => $sku) {
-        //   update_post_meta($postId, '_jugatoys_numero_actualizacion', $numeroActualizacion );
-        // }
         //En caso de respuesta incorrecta, marcamos consultamos indifivucalmente producto
         //SI tiene más de un elemento, puede que solo esté fallando uno de los elementos, por tanto consultamos todos.
         if (count($aProductId_Sku) > 1) {
             foreach ($aProductId_Sku as $key => $value) {
                 $aNuevoProductId_Sku = array($key => $value);
                 actualizarStockSku($aNuevoProductId_Sku);
-            }
-        } else {
-            //Si tiene un elemento, asumimos que está incorrecto y actualiamos la opción numero actualización
-            foreach ($aProductId_Sku as $postId => $sku) {
-                update_post_meta($postId, '_jugatoys_numero_actualizacion', $numeroActualizacion);
             }
         }
     }
@@ -201,63 +172,44 @@ function actualizarStockSku($aProductId_Sku = array())
 //Función que se llama dos veces al día para comprobar nuevos productos
 function comprobarTodosProductos()
 {
-    jugatoys_log("Corriendo comprobarTodosProductos");
-
+    
     //Checkeamos si se ha lanzado alguna vez o es la primera.
     $fechaUltimaComprobacionProductos = get_option("jugatoys_fechaUltimaComprobacionProductos");
     if ($fechaUltimaComprobacionProductos == false) {
         $fechaUltimaComprobacionProductos = "2000-07-01";
     }
 
+    jugatoys_log("Corriendo comprobarTodosProductos. Fecha ultima comprobacion: ". $fechaUltimaComprobacionProductos);
+
     $api = new JugaToysAPI();
     $productInfo = $api->productInfo(array(), $fechaUltimaComprobacionProductos);
 
+    $fechaConsultaActual = Date("Y-m-d H:i", time());
+
     $productosInsertados = 0;
-    $productosPasados = 0;
 
     if ($productInfo) {
         if ($productInfo->Result == "OK") {
+            jugatoys_log("Respuesta correcta de productInfo. Actualizando fechaConsultaActual a ". $fechaConsultaActual);
+            update_option("jugatoys_fechaUltimaComprobacionProductos", $fechaConsultaActual);
             $productos = $productInfo->Data;
             foreach ($productos as $key => $producto) {
 
-                // TODO: Test, quitar despues
-//                if ($productosInsertados > 0 || $productosPasados > 5) {
-//                    wp_die();
-//                }
-//                if (empty($producto->UrlImage)) {
-//                    if ($producto->Stock == 0 || $producto->PVP == 0) {
-//                        $productosPasados++;
-//                        continue;
-//                    }
-//                }
-                // /TODO
-
                 $producto->Sku = $producto->Sku_Provider;
                 $idProducto = existeSKU($producto->Sku);
-                // BOGDAN v1.3.9 - Ya no se dará de alta los artículos sin stock
-                // if ($producto->Stock <= 0) {
-                //     jugatoys_log(["NO STOCK SE IGNORA" , $producto]);
-                //     $productosPasados++;
-                //     continue;
-                // }
                 
                 if (!$idProducto) {
-                    jugatoys_log("ERROR - SKU no localizado: " . $producto->Sku);
+                    jugatoys_log("Dando de alta producto. SKU no localizado: " . $producto->Sku);
                     if (altaProducto((array)$producto)) {
                         $productosInsertados++;
                         jugatoys_log($producto);
                     }
                 } else {
-                    // V. 1.4.4 - Desactivamos actualización de stock. Solo actualizará desde stockPrice
-                    // jugatoys_log("ENCONTRADO - " . $producto->Sku. " CON EAN: ". $producto->EAN);
-                    // update_post_meta($idProducto, '_sku_jugatoys', $producto->Sku_Provider);
-                    
                     $EAN_tratado = conseguirUnSoloEAN($producto->EAN);
                     update_post_meta($idProducto, '_alg_ean', $EAN_tratado);
+                    jugatoys_log("SKU encontrado: ". $producto->Sku. " ID: ". $idProducto. ". Actualizando EAN a: ". $EAN_tratado);
                 }
             }
-
-            update_option("jugatoys_fechaUltimaComprobacionProductos", Date("Y-m-d H:i", time()));
         }
     }
 
@@ -267,82 +219,86 @@ function comprobarTodosProductos()
 //Función que se llama desde cron recursivamente
 function actualizarStockProductos()
 {
-
-    //Obtenemos número de actualización actual
-    $numeroActualizacion = get_option('jugatoys_numero_actualizacion');
-    if (!$numeroActualizacion) {
-        $numeroActualizacion = 1;
-        update_option('jugatoys_numero_actualizacion', $numeroActualizacion);
-    }
-
-    jugatoys_log("Nº " . $numeroActualizacion . " - Corriendo actualizarStockProductos");
-
+    
     //Activamos flag indicando que se están actualizando productos
     update_option("jugatoys_actualizandoStockProductos", 1);
-
-    $opciones = get_option('jugatoys_settings');
-
-    //Obtenemos los productos con la configuración establecida
-    $args = array(
-        "numberposts" => $opciones['sincronizaciones_diarias_numero_productos'],
-        "post_type" => "product",
-        'meta_query' => array(
-            'relation' => 'AND',
-            array(
-                'key' => '_sku',
-                'compare' => 'EXISTS',
-            ),
-            array(
-                'relation' => 'OR',
-                array(
-                    'key' => '_jugatoys_numero_actualizacion',
-                    'value' => $numeroActualizacion,
-                    'type' => 'numeric',
-                    'compare' => '<',
-                ),
-                array(
-                    'key' => '_jugatoys_numero_actualizacion',
-                    'compare' => 'NOT EXISTS',
-                ),
-            ),
-        ),
-    );
-
-    $productos = get_posts($args);
-
-    //Si hay productos para actualizar, tratamos
-    if (!empty($productos)) {
-        //BOGDAN V.1.4.1 - Antes de actualizar el stock se hará una comprobación para dar de alta un artículo que en un primer momento se obvio por falta de stock
-        // comprobarTodosProductos();
-        //BOGDAN V.1.4.1
-
-        $aIdProdcutos = array();
-
-        foreach ($productos as $key => $producto) {
-            $aIdProdcutos[] = $producto->ID;
-        }
-
-        // jugatoys_log("Nº " . $numeroActualizacion . " - Obtenidos: ");
-        // jugatoys_log($productos);
-
-        //Actualizamos productos
-        actualizarStockIdProducto($aIdProdcutos);
-
-        //Quitamos flag de actualización
-        update_option("jugatoys_actualizandoStockProductos", 0);
-        
-        //Hacemos que función sea recursiva
-        wp_schedule_single_event(time(), "jugatoys_actualizar_stock_productos");
-    } else {
-        jugatoys_log("Nº " . $numeroActualizacion . " - Finalizando actualizarStockProductos");
-
-        //Quitamos flag de actualización
-        update_option("jugatoys_actualizandoStockProductos", 0);
-
-        //Actualizamos numero de actualizacion
-        $numeroActualizacion++;
-        update_option('jugatoys_numero_actualizacion', $numeroActualizacion);
+    
+    // Obtenemos la fecha de la última consulta
+    $fechaUltimaComprobacionStock = get_option("jugatoys_fechaUltimaComprobacionStock");
+    if ($fechaUltimaComprobacionStock == false) {
+        $fechaUltimaComprobacionStock = "2000-07-01";
     }
+    
+    jugatoys_log("Corriendo actualizarStockProductos. fechaUltimaComprobacionStock:". $fechaUltimaComprobacionStock);
+
+    $fechaConsultaActual = Date("Y-m-d H:i", time());
+
+    // Obtenemos los productos que deben ser actualizados
+    $api = new JugaToysAPI();
+    $stockPrice = $api->stockPrice(array(), $fechaUltimaComprobacionStock);
+
+    // Si la consulta ha sido correcta
+    if ($stockPrice) {
+        if ($stockPrice->Result == "OK") {
+            jugatoys_log("Resultado correcto. Actualizando jugatoys_fechaUltimaComprobacionStock a ". $fechaConsultaActual);
+            update_option("jugatoys_fechaUltimaComprobacionStock", $fechaConsultaActual);
+            // Obtenemos los productos que se han actualizado
+            $productosActualizados = $stockPrice->Data;
+            //Si solo devuelve un dato, quizá devuelva el objeto directamente en vez de array. Confirmamos, y convertimos en array si es preciso para que encaje en lógica
+            if (!is_array($productosActualizados)) {
+                $productosActualizados = array($productosActualizados);
+            }
+            // Si hay productos que actualizar
+            if (count($productosActualizados) > 0) {
+                // Actualizamos los productos
+                foreach($productosActualizados as $producto) {
+                    if(!empty($producto->Sku_Provider)) {
+                        jugatoys_log("Corriendo actualizarStockProductos. Verificando si existe sku: " . $producto->Sku_Provider);
+                        $idProducto = existeSKU($producto->Sku_Provider);
+                        // Si el producto existe
+                        if ($idProducto) {
+                            jugatoys_log("Corriendo actualizarStockProductos. SKU: " . $producto->Sku_Provider ." existe con idProducto: " . $idProducto);
+                            // Actualizamos el stock
+                            $stock = $producto->Stock;
+                            if($stock <= 0) $stock = 0;
+                            wc_update_product_stock($idProducto, $stock);
+                            jugatoys_log("Corriendo actualizarStockProductos. Actualizado stock de SKU: " . $producto->Sku_Provider ." a: " . $stock);
+                            // Actualizamos el precio si corresponde
+                            $sincronizarPrecio = get_post_meta($idProducto, 'jugatoys_sincronizarPrecio', true);
+                            if (!empty($sincronizarPrecio)) {
+                                update_post_meta($idProducto, '_price', $producto->PVP);
+                                jugatoys_log("Corriendo actualizarStockProductos. Actualizado precio de SKU: " . $producto->Sku_Provider ." a: " . $producto->PVP);
+                            }else{
+                                jugatoys_log("Corriendo actualizarStockProductos. No se actualiza precio de SKU: " . $producto->Sku_Provider ." porque no está habilitado");
+                            }
+
+                            // Si no tiene stock, lo pasamos a borrador
+                            if ($stock <= 0) {
+                                jugatoys_log("Corriendo actualizarStockProductos. SKU: " . $producto->Sku_Provider ." NO tiene stock, lo ponemos en borrador");
+                                wp_update_post(array(
+                                    'ID' => $idProducto,
+                                    'post_status' => 'draft'
+                                ));
+                            }else{
+                                jugatoys_log("Corriendo actualizarStockProductos. SKU: " . $producto->Sku_Provider ." tiene stock, lo ponemos en publicado");
+                                wp_update_post(array(
+                                    'ID' => $idProducto,
+                                    'post_status' => 'publish'
+                                ));
+                            }
+                        }else{
+                            jugatoys_log("Corriendo actualizarStockProductos. SKU: " . $producto->Sku_Provider ." NO existe");
+                        }
+                    }
+                }
+            }
+
+        }
+    }
+
+    //Quitamos flag de actualización
+    update_option("jugatoys_actualizandoStockProductos", 0);
+    jugatoys_log("Finalizando actualizarStockProductos");
 }
 
 function existeSKU($sku)
@@ -482,9 +438,6 @@ function altaProducto($producto)
         if (!empty($producto['Sku_Provider'])) {
             update_post_meta($new_simple_product->get_id(), '_sku_jugatoys', $producto['Sku_Provider']);
         }
-
-        $numeroActualizacion = get_option('jugatoys_numero_actualizacion');
-        update_post_meta($new_simple_product->get_id(), '_jugatoys_numero_actualizacion', $numeroActualizacion);
 
         // Opción de sincronización de precio por defecto activa
         update_post_meta($new_simple_product->get_id(), 'jugatoys_sincronizarPrecio', "yes");

@@ -41,6 +41,8 @@ class JugaToysSettingsPage
         ?>
         <div class="wrap">
             <h1><?php _e('JugaToys - Ajustes','jugatoys') ?></h1>
+            <h5>Fecha de última actualización de productos: <?= get_option("jugatoys_fechaUltimaComprobacionStock") ?></h5>
+            <h5>Fecha de última sincronización de productos nuevos: <?= get_option("jugatoys_fechaUltimaComprobacionProductos") ?></h5>
             <form method="post" action="options.php">
             <?php
                 // This prints out all hidden setting fields
@@ -123,24 +125,7 @@ class JugaToysSettingsPage
             __('Sincronización','jugatoys'), // Title
             false,
             'jugatoys-ajustes' // Page
-        );    
-
-        // V. 1.4.4 - Desactivamos opción para establecer número de actualizaciones de stock diarias. Será cada 5 minutos
-        // add_settings_field(
-        //     'sincronizaciones_diarias', 
-        //     __('Número de sincronizaciones globales diarias para actualizar stock','jugatoys'), 
-        //     array( $this, 'sincronizaciones_diarias_callback' ), 
-        //     'jugatoys-ajustes', 
-        //     'ajuste_sincronizacion_jugatoys'
-        // );
-
-        add_settings_field(
-            'sincronizaciones_diarias_numero_productos', 
-            __('Número de productos a actualizar recursivamente','jugatoys'), 
-            array( $this, 'sincronizaciones_diarias_numero_productos_callback' ), 
-            'jugatoys-ajustes', 
-            'ajuste_sincronizacion_jugatoys'
-        );
+        );  
 
         add_settings_field(
             'sincronizar_productos', 
@@ -175,13 +160,7 @@ class JugaToysSettingsPage
         if( isset( $input['timeout'] ) )
             $new_input['timeout'] = absint( $input['timeout'] );
 
-        // V. 1.4.4 - Desactivamos opción para establecer número de actualizaciones de stock diarias. Será cada 5 minutos
-        // if( isset( $input['sincronizaciones_diarias'] ) )
-        //     $new_input['sincronizaciones_diarias'] = absint( $input['sincronizaciones_diarias'] );
-
-        if( isset( $input['sincronizaciones_diarias_numero_productos'] ) )
-            $new_input['sincronizaciones_diarias_numero_productos'] = absint( $input['sincronizaciones_diarias_numero_productos'] );
-
+        
         return $new_input;
     }
 
@@ -237,29 +216,6 @@ class JugaToysSettingsPage
         printf(
             '<input type="text" id="timeout" name="jugatoys_settings[timeout]" value="%s" />',
             isset( $this->options['timeout'] ) ? esc_attr( $this->options['timeout']) : ''
-        );
-    }
-
-    /** 
-     * Get the settings option array and print one of its values
-     */
-    // V. 1.4.4 - Desactivamos opción para establecer número de actualizaciones de stock diarias. Será cada 5 minutos
-    // public function sincronizaciones_diarias_callback()
-    // {
-    //     printf(
-    //         '<input type="text" id="sincronizaciones_diarias" name="jugatoys_settings[sincronizaciones_diarias]" value="%d" />',
-    //         isset( $this->options['sincronizaciones_diarias'] ) ? esc_attr( $this->options['sincronizaciones_diarias']) : ''
-    //     );
-    // }
-
-    /** 
-     * Get the settings option array and print one of its values
-     */
-    public function sincronizaciones_diarias_numero_productos_callback()
-    {
-        printf(
-            '<input type="text" id="sincronizaciones_diarias_numero_productos" name="jugatoys_settings[sincronizaciones_diarias_numero_productos]" value="%d" />',
-            isset( $this->options['sincronizaciones_diarias_numero_productos'] ) ? esc_attr( $this->options['sincronizaciones_diarias_numero_productos']) : ''
         );
     }
 
