@@ -253,7 +253,7 @@ function actualizarStockProductos()
                 // Actualizamos los productos
                 foreach($productosActualizados as $producto) {
                     if(!empty($producto->Sku_Provider)) {
-                        jugatoys_log("Corriendo actualizarStockProductos. Verificando si existe sku: " . $producto->Sku_Provider);
+                        jugatoys_log("Corriendo actualizarStockProductos. Verificando si existe sku: " . $producto->Sku_Provider. ". Fecha de actualización: ". $producto->Updated);
                         $idProducto = existeSKU($producto->Sku_Provider);
                         // Si el producto existe
                         if ($idProducto) {
@@ -716,11 +716,10 @@ function pruebaAPI()
     error_reporting(E_ALL);
     echo "<pre>";
 
-    wp_unschedule_event(1657049367, "jugatoys_actualizar_stock_productos_cron");
-    // wp_unschedule_event(1657049141, "jugatoys_actualizar_stock_productos_cron");
-    
 
-    jugatoys_log("prueba");
+    echo 'borramos 1657143536, "jugatoys_actualizar_stock_productos_cron"';
+    wp_unschedule_event(1657143536, "jugatoys_actualizar_stock_productos_cron");
+    // wp_unschedule_event(1657049141, "jugatoys_actualizar_stock_productos_cron");
     var_dump(_get_cron_array());
 
     wp_die();

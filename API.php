@@ -69,7 +69,7 @@ class JugaToysAPI{
     $data = array();
 
     if (is_array($arrayIds) && !empty($arrayIds)) {
-      $data['producto_id'] = $arrayIds;
+      $data['products_id'] = $arrayIds;
     }
 
     if (!empty($updated_from)) {
