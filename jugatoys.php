@@ -113,8 +113,8 @@ function configuracionInicial(){
     // Verificamos que el servidor esté activo
     jugatoys_log("Comprobando si el servidor está activo");
     $api = new JugaToysAPI();
-    $ping = $api->ping();
-    jugatoys_log("Comprobando si el servidor está activo. Resultado: ".$ping);
+    $ping = ($api->ping()) ? 1 : 0;
+    jugatoys_log("Comprobando si el servidor está activo. Resultado: ". print_r($ping, true));
 
     // Si el servidor está activo, comprobamos si hay ventas sin notificar
     if($ping){

@@ -862,6 +862,9 @@ function pruebaAPI()
 // Función lanzada desde cron para verificar si hay ventas que notificar
 function jugatoys_notificarVentasNoNotificadas()
 {
+
+    jugatoys_log("Corriendo jugatoys_notificarVentasNoNotificadas");
+
     // Activamos flag de notificación de ventas
     update_option("jugatoys_notificandoVentas", true);
 
@@ -881,11 +884,13 @@ function jugatoys_notificarVentasNoNotificadas()
         'order' => 'ASC',
     ));
 
+    jugatoys_log("Ventas a notificar: " . count($orders));
+    
     // Notificamos las ventas
     foreach ($orders as $order) {
         $orderId = $order->ID;
+        jugatoys_log("Venta a notificar: " . $orderId);
         $order = wc_get_order($orderId);
-        $order->save();
         if(notificarVenta($orderId)){
             // Si la notificación se ha realizado correctamente, eliminamos la opcion jugatoys_ventaNoNotificada
             $order->update_meta_data('jugatoys_ventaNoNotificada', 0);
