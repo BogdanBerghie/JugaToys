@@ -4,7 +4,7 @@ function actualizarStockProductoActual()
 {
     //Obtenemos objeto de producto actual
     global $product;
-
+    jugatoys_log("Consultando stock de producto en vista single");
     actualizarStockIdProducto($product->id);
 }
 
@@ -12,6 +12,8 @@ function actualizarStockCarrito()
 {
     //Obtenemos objeto woocommerce
     global $woocommerce;
+
+    jugatoys_log("Consultando stock de productos en carrito");
 
     //Obtenemos productos en carrito
     $products = $woocommerce->cart->get_cart();
