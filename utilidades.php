@@ -226,7 +226,7 @@ function actualizarStockProductos()
     // Obtenemos la fecha de la última consulta
     $fechaUltimaComprobacionStock = get_option("jugatoys_fechaUltimaComprobacionStock");
     if ($fechaUltimaComprobacionStock == false) {
-        $fechaUltimaComprobacionStock = "2000-07-01";
+        $fechaUltimaComprobacionStock = "2022-07-05";
     }
     
     jugatoys_log("Corriendo actualizarStockProductos. fechaUltimaComprobacionStock:". $fechaUltimaComprobacionStock);
