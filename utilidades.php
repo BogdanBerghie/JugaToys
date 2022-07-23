@@ -125,8 +125,10 @@ function actualizarStockSku($aProductId_Sku = array())
                             wc_update_product_stock($idProducto, $stock);
 
                             // V. 1.4.4 - Si el stock de un producto es >0 quitamos borrador
-                            $product->set_status('publish');
-                            $product->save();
+                            // V. 1.4.6 - Alain - 23/07/2022
+                            // + No tocamos estado del producto al actualizar stock
+                            // $product->set_status('publish');
+                            // $product->save();
                         } 
                         //BOGDAN v1.3.6 - A peticion de Ander. No quiere que se actualice el nombre.
                         // $Product_Name = $pData->Product_Name;
@@ -276,17 +278,23 @@ function actualizarStockProductos()
 
                             // Si no tiene stock, lo pasamos a borrador
                             if ($stock <= 0) {
-                                jugatoys_log("Corriendo actualizarStockProductos. SKU: " . $producto->Sku_Provider ." NO tiene stock, lo ponemos en borrador");
-                                wp_update_post(array(
-                                    'ID' => $idProducto,
-                                    'post_status' => 'draft'
-                                ));
+                                // V. 1.4.6 - Alain - 23/07/2022
+                                // + No tocamos estado del producto al actualizar stock
+                                jugatoys_log("Corriendo actualizarStockProductos. SKU: " . $producto->Sku_Provider ." NO tiene stock");
+                                // jugatoys_log("Corriendo actualizarStockProductos. SKU: " . $producto->Sku_Provider ." NO tiene stock, lo ponemos en borrador");
+                                // wp_update_post(array(
+                                //     'ID' => $idProducto,
+                                //     'post_status' => 'draft'
+                                // ));
                             }else{
-                                jugatoys_log("Corriendo actualizarStockProductos. SKU: " . $producto->Sku_Provider ." tiene stock, lo ponemos en publicado");
-                                wp_update_post(array(
-                                    'ID' => $idProducto,
-                                    'post_status' => 'publish'
-                                ));
+                                // V. 1.4.6 - Alain - 23/07/2022
+                                // + No tocamos estado del producto al actualizar stock
+                                jugatoys_log("Corriendo actualizarStockProductos. SKU: " . $producto->Sku_Provider ." tiene stock");
+                                // jugatoys_log("Corriendo actualizarStockProductos. SKU: " . $producto->Sku_Provider ." tiene stock, lo ponemos en publicado");
+                                // wp_update_post(array(
+                                //     'ID' => $idProducto,
+                                //     'post_status' => 'publish'
+                                // ));
                             }
                         }else{
                             jugatoys_log("Corriendo actualizarStockProductos. SKU: " . $producto->Sku_Provider ." NO existe");
@@ -639,7 +647,9 @@ function notificarVenta($orderId)
 
     // Si no hay respuesta correcta, marcamos flag de venta no notificada
     if (!$respuesta) {
-        update_post_meta($orderId, 'jugatoys_ventaNoNotificada', true);        
+        if ( ! add_post_meta( $orderId, 'jugatoys_ventaNoNotificada', true, true ) ) { 
+            update_post_meta($orderId, 'jugatoys_ventaNoNotificada', true);
+         }
     }
 
     // var_dump($respuesta);
@@ -719,9 +729,16 @@ function pruebaAPI()
     echo "<pre>";
 
 
-    echo 'borramos 1657143536, "jugatoys_actualizar_stock_productos_cron"';
-    wp_unschedule_event(1657143536, "jugatoys_actualizar_stock_productos_cron");
+    // echo 'borramos 1657143536, "jugatoys_actualizar_stock_productos_cron"';
+    // wp_unschedule_event(1657143536, "jugatoys_actualizar_stock_productos_cron");
     // wp_unschedule_event(1657049141, "jugatoys_actualizar_stock_productos_cron");
+
+    // update_post_meta(1, 'jugatoys_ventaNoNotificada', true);
+
+    $api = new JugaToysAPI();
+    var_dump($api->ping());
+    
+    
     var_dump(_get_cron_array());
 
     wp_die();

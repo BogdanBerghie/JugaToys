@@ -20,6 +20,10 @@ Plugin para vincular contra el TPV de JugaToys
 - Notificación de venta
 
 # Descripción
+### V. 1.4.6 - Alain - 23/07/2022
++ Fix al guardar venta como no notificada
++ No tocamos estado del producto al actualizar stock
+
 ### V. 1.4.5 - Alain - 17/06/2022
 + Consulta de stock en base a fecha en vez de en base a productos
 

@@ -35,7 +35,9 @@ class JugaToysAPI{
     $result = curl_exec($this->ch);
     $httpcode = curl_getinfo($this->ch, CURLINFO_HTTP_CODE);
     curl_close($this->ch);
-    if ($httpcode == 200) {
+    jugatoys_log("Haciendo ping a la URL: ".$url.". Httpcode: ".$httpcode);
+    jugatoys_log("Resultado: ".$result);
+    if ($result !== false) {
       return true;
     }else{
       return false;
