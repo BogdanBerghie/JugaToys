@@ -716,7 +716,7 @@ function conseguirUnSoloEAN($EANs)
 }
 
 // Ajax de prueba
-// https://ametsjuguetesydisfraces.es/wp-admin/admin-ajax.php?action=pruebaAPI
+// https://jugueteria.serinforhosting.com/wp-admin/admin-ajax.php?action=pruebaAPI
 add_action('wp_ajax_pruebaAPI', 'pruebaAPI');
 // add_action( 'wp_ajax_nopriv_pruebaAPI', 'pruebaAPI' );
 
@@ -726,8 +726,31 @@ function pruebaAPI()
     ini_set('display_errors', '1');
     ini_set('display_startup_errors', '1');
     error_reporting(E_ALL);
-    echo "<pre>";
 
+    // echo "jugatoys_notificarVentasNoNotificadas";
+    // jugatoys_log("corriendo jugatoys_notificarVentasNoNotificadas");
+    // jugatoys_notificarVentasNoNotificadas();
+
+    // echo time();
+    // echo '<pre>';
+    // print_r(_get_cron_array());
+    // echo '</pre>';
+
+    // wp_die();
+
+
+
+    // echo "<pre>";
+
+    // jugatoys_log("recién actualizado");
+    // jugatoys_cron_venta_no_notificada();
+    // wp_die();
+
+
+    // add_option("jugatoys_fechaUltimaComprobacionProductos", "2022-07-25");
+    // var_dump(comprobarTodosProductos());
+
+    // wp_die();
 
     // echo 'borramos 1657143536, "jugatoys_actualizar_stock_productos_cron"';
     // wp_unschedule_event(1657143536, "jugatoys_actualizar_stock_productos_cron");
@@ -900,6 +923,7 @@ function jugatoys_notificarVentasNoNotificadas()
         'posts_per_page' => -1,
         'orderby' => 'date',
         'order' => 'ASC',
+        'post_status' => 'any',
     ));
 
     jugatoys_log("Ventas a notificar: " . count($orders));
