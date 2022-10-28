@@ -120,8 +120,12 @@ function configuracionInicial(){
     if($ping){
       // Confirmamos flag que no se estén notificando ventas actualmente
       $notificandoVentas = get_option("jugatoys_notificandoVentas");
+      jugatoys_log("Ping correcto. Notificando ventas: ". print_r($notificandoVentas, true));
       if (!$notificandoVentas) {
+        jugatoys_log("ponemos en cola");
         wp_schedule_single_event(time(), "jugatoys_notificarVentasNoNotificadas_action");
+      }else{
+        jugatoys_log("No ponemos en cola");
       }
     }
   }

@@ -726,6 +726,7 @@ function pruebaAPI()
     ini_set('display_errors', '1');
     ini_set('display_startup_errors', '1');
     error_reporting(E_ALL);
+    echo "<pre>";
 
     // echo "jugatoys_notificarVentasNoNotificadas";
     // jugatoys_log("corriendo jugatoys_notificarVentasNoNotificadas");
@@ -736,7 +737,7 @@ function pruebaAPI()
     // print_r(_get_cron_array());
     // echo '</pre>';
 
-    // wp_die();
+    wp_die();
 
 
 
@@ -935,7 +936,10 @@ function jugatoys_notificarVentasNoNotificadas()
         $order = wc_get_order($orderId);
         if(notificarVenta($orderId)){
             // Si la notificación se ha realizado correctamente, eliminamos la opcion jugatoys_ventaNoNotificada
-            $order->update_meta_data('jugatoys_ventaNoNotificada', 0);
+            update_post_meta($orderId, 'jugatoys_ventaNoNotificada', 0);
+            jugatoys_log("venta notificada correctamente");
+        }else{
+            jugatoys_log("error al notificar la venta");
         }
     }
 
